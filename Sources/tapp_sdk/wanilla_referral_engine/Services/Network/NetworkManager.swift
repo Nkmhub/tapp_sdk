@@ -11,7 +11,12 @@
 import Foundation
 
 public class NetworkManager {
-    public func postRequest(url: String, params: [String: Any], completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void) {
+    public func postRequest(
+        url: String,
+        params: [String: Any],
+        headers: [String: String] = [:],
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+    ) {
         guard let url = URL(string: url) else {
             completion(.failure(.apiError("Invalid API URL.")))
             return
@@ -21,6 +26,11 @@ public class NetworkManager {
         request.httpMethod = "POST"
         request.httpBody = try? JSONSerialization.data(withJSONObject: params)
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Add custom headers
+        headers.forEach { key, value in
+            request.addValue(value, forHTTPHeaderField: key)
+        }
 
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
@@ -39,3 +49,4 @@ public class NetworkManager {
         task.resume()
     }
 }
+

@@ -55,7 +55,8 @@ public class AdjustAffiliateService: AffiliateService {
         if let event = ADJEvent(eventToken: eventId) {
             // Track the event
             Adjust.trackEvent(event)
-            print("Tracked event: \(event.description)")
+            print("Tracked event on Adjust: \(event.description)")
+            //TODO:: API call to tapp sdk to notify about the event
         } else {
             // Handle the case where event creation fails
             print("Error: Could not create ADJEvent with eventId \(eventId).")
