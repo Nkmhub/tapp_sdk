@@ -20,14 +20,15 @@ public class AdjustAffiliateService: AffiliateService {
         self.appToken = appToken
     }
 
-    public func initialize(environment: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    public func initialize(environment: Environment, completion: @escaping (Result<Void, Error>) -> Void) {
+
         guard !isInitialized else {
             print("Adjust is already initialized.")
             completion(.success(()))
             return
         }
 
-        let adjustEnvironment = environment.lowercased() == "production" ? ADJEnvironmentProduction : ADJEnvironmentSandbox
+        let adjustEnvironment = environment == Environment.production ? ADJEnvironmentProduction : ADJEnvironmentSandbox
         let adjustConfig = ADJConfig(appToken: appToken, environment: adjustEnvironment)
         Adjust.initSdk(adjustConfig)
 
@@ -39,6 +40,25 @@ public class AdjustAffiliateService: AffiliateService {
         if let incomingURL = URL(string: url) {
             Adjust.processDeeplink(ADJDeeplink(deeplink: incomingURL)!)
             print("Adjust notified of the incoming URL: \(incomingURL)")
+        }
+    }
+    
+    //TODO:: insert the event logic for adjust
+    public func handleEvent(with eventId: String) {
+        // Validate eventId
+        guard !eventId.isEmpty else {
+            print("Error: eventId is empty.")
+            return
+        }
+        
+        // Create ADJEvent instance
+        if let event = ADJEvent(eventToken: eventId) {
+            // Track the event
+            Adjust.trackEvent(event)
+            print("Tracked event: \(event.description)")
+        } else {
+            // Handle the case where event creation fails
+            print("Error: Could not create ADJEvent with eventId \(eventId).")
         }
     }
 }

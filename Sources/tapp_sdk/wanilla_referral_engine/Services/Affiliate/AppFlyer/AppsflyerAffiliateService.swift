@@ -11,7 +11,7 @@
 import Foundation
 
 public class AppsflyerAffiliateService: AffiliateService {
-    public func initialize(environment: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    public func initialize(environment: Environment, completion: @escaping (Result<Void, Error>) -> Void) {
         // Appsflyer-specific initialization logic here
         print("Initializing Appsflyer...")
         completion(.success(()))
@@ -21,4 +21,10 @@ public class AppsflyerAffiliateService: AffiliateService {
         // Appsflyer-specific callback handling logic here
         print("Handling Appsflyer callback with URL: \(url)")
     }
+    
+    public func handleEvent(with eventId: String) {
+        // Appsflyer-specific callback handling logic here
+        print("Handling Appsflyer callback for events with ID: \(eventId)")
+    }
+
 }
