@@ -17,6 +17,8 @@ public class AffiliateServiceFactory {
             return AdjustAffiliateService(appToken: appToken)
         case .appsflyer:
             return AppsflyerAffiliateService()
+        case .tapp:
+            return TappAffiliateService()
         }
     }
 }

@@ -11,4 +11,10 @@
 public enum Affiliate: String {
     case adjust
     case appsflyer
+    case tapp
+}
+
+public enum UrlAffiliate: String {
+    case adjust
+    case appsflyer
 }

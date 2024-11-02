@@ -61,41 +61,15 @@ public class ReferralEngineSDK {
         influencer: String,
         adgroup: String,
         creative: String,
-        mmp: Affiliate,
+        mmp: UrlAffiliate,
         token: String,
         jsonObject: [String: Any],
         completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
     ) {
-        // Construct the URL for the API
-        let apiURL = "https://www.nkmhub.com/api/wre/generateUrl"
         
-        // Prepare the JSON body with the token, affiliate, and username
-        let requestBody: [String: Any] = [
-            "wre_token": wre_token,
-            "mmp": mmp.rawValue,
-            "influencer": influencer,
-            "adgroup": adgroup,
-            "creative": creative,
-            "data": jsonObject
-        ]
-        
-        // Set up headers, including the Authorization header
-        let headers = [
-            "Authorization": "Bearer \(token)"
-        ]
-        
-        // Initialize NetworkManager and make the POST request
-        let networkManager = NetworkManager()
-        networkManager.postRequest(url: apiURL, params: requestBody, headers: headers) { result in
-            switch result {
-            case .success(let jsonResponse):
-                // Success: Return the JSON response
-                completion(.success(jsonResponse))
-                print("jsonResponse:", jsonResponse)
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
+        let affiliateService = AffiliateServiceFactory.create(Affiliate.tapp,appToken: tokenKey)
+      
+        affiliateService.affiliateUrl(wre_token: wre_token, influencer: influencer, adgroup: adgroup, creative: creative, mmp: mmp, token: token, jsonObject: jsonObject, completion: <#T##(Result<[String : Any], ReferralEngineError>) -> Void#>)
     }
 
     // Helper function to extract uId from the URL

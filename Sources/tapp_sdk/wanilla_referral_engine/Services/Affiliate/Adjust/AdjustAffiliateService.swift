@@ -33,6 +33,7 @@ public class AdjustAffiliateService: AffiliateService {
         Adjust.initSdk(adjustConfig)
 
         isInitialized = true
+        print("Adjust initialized complete.")
         completion(.success(()))
     }
 
@@ -62,4 +63,20 @@ public class AdjustAffiliateService: AffiliateService {
             print("Error: Could not create ADJEvent with eventId \(eventId).")
         }
     }
+    
+    public func affiliateUrl(
+        wre_token: String,
+        influencer: String,
+        adgroup: String,
+        creative: String,
+        mmp: UrlAffiliate,
+        token: String,
+        jsonObject: [String: Any],
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+    ) {
+        print("Handling Adjust callback for custom url...not implemented yet")
+
+    }
+    
+    
 }

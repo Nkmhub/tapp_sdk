@@ -26,5 +26,19 @@ public class AppsflyerAffiliateService: AffiliateService {
         // Appsflyer-specific callback handling logic here
         print("Handling Appsflyer callback for events with ID: \(eventId)")
     }
+    
+    public func affiliateUrl(
+        wre_token: String,
+        influencer: String,
+        adgroup: String,
+        creative: String,
+        mmp: UrlAffiliate,
+        token: String,
+        jsonObject: [String: Any],
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+    ) {
+        print("Handling Appsflyer callback for custom url...not implemented yet")
+
+    }
 
 }
