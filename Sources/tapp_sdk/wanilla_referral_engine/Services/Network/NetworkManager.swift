@@ -10,11 +10,54 @@
 
 import Foundation
 
+import Foundation
+
 public class NetworkManager {
+
+    // POST Request
     public func postRequest(
         url: String,
         params: [String: Any],
         headers: [String: String] = [:],
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+    ) {
+        performRequest(url: url, method: "POST", params: params, headers: headers, completion: completion)
+    }
+
+    // GET Request
+    public func getRequest(
+        url: String,
+        headers: [String: String] = [:],
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+    ) {
+        performRequest(url: url, method: "GET", params: nil, headers: headers, completion: completion)
+    }
+
+    // PUT Request
+    public func putRequest(
+        url: String,
+        params: [String: Any],
+        headers: [String: String] = [:],
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+    ) {
+        performRequest(url: url, method: "PUT", params: params, headers: headers, completion: completion)
+    }
+
+    // DELETE Request
+    public func deleteRequest(
+        url: String,
+        headers: [String: String] = [:],
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+    ) {
+        performRequest(url: url, method: "DELETE", params: nil, headers: headers, completion: completion)
+    }
+
+    // Private generic request handler
+    private func performRequest(
+        url: String,
+        method: String,
+        params: [String: Any]?,
+        headers: [String: String],
         completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
     ) {
         guard let url = URL(string: url) else {
@@ -23,9 +66,13 @@ public class NetworkManager {
         }
 
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.httpBody = try? JSONSerialization.data(withJSONObject: params)
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = method
+
+        // Add request body for methods that support it
+        if let params = params, method != "GET" {
+            request.httpBody = try? JSONSerialization.data(withJSONObject: params)
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
 
         // Add custom headers
         headers.forEach { key, value in
@@ -49,4 +96,3 @@ public class NetworkManager {
         task.resume()
     }
 }
-
