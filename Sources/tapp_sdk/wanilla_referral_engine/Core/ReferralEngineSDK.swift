@@ -69,7 +69,29 @@ public class ReferralEngineSDK {
         
         let affiliateService = AffiliateServiceFactory.create(Affiliate.tapp,appToken: tokenKey)
       
-        affiliateService.affiliateUrl(wre_token: wre_token, influencer: influencer, adgroup: adgroup, creative: creative, mmp: mmp, token: token, jsonObject: jsonObject, completion: <#T##(Result<[String : Any], ReferralEngineError>) -> Void#>)
+        affiliateService.affiliateUrl(
+               wre_token: wre_token,
+               influencer: influencer,
+               adgroup: adgroup,
+               creative: creative,
+               mmp: mmp,
+               token: token,
+               jsonObject: jsonObject
+           ) { [weak self] result in
+               guard let self = self else { return } // Ensures self is available within the closure
+               
+               switch result {
+               case .success(let jsonResponse):
+                   // Handle the success case and pass the response to the completion handler
+                   completion(.success(jsonResponse))
+                   print("jsonResponse:", jsonResponse)
+                   
+               case .failure(let error):
+                   // Handle the failure case and pass the error to the completion handler
+                   completion(.failure(error))
+                   print("Error:", error)
+               }
+           }
     }
 
     // Helper function to extract uId from the URL
