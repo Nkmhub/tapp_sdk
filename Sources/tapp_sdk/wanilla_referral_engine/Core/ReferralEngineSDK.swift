@@ -14,15 +14,24 @@ public class ReferralEngineSDK {
     private let userDefaultsKey = "hasProcessedReferralEngine"
     private var tokenKey = "";
     private var env:Environment = Environment.sandbox;
-    private var authToken = "";
+    private var authToken = ""
 
-    public init() {}
+     public init() {
+         loadAuthTokenFromInfoPlist()
+     }
 
+     private func loadAuthTokenFromInfoPlist() {
+         if let tappToken = Bundle.main.object(forInfoDictionaryKey: "TAPP_TOKEN") as? String {
+             self.authToken = tappToken
+             print("Loaded authToken from Info.plist: \(authToken)")
+         } else {
+             print("Error: TAPP_TOKEN not found in Info.plist")
+         }
+     }
     // Main function to process referral based on the affiliate
-    public func processReferralEngine(url: String, environment: Environment, affiliate: Affiliate, appToken: String, tappToken: String) {
+    public func processReferralEngine(url: String, environment: Environment, affiliate: Affiliate, appToken: String) {
         tokenKey = appToken
         env = environment
-        authToken = tappToken;
         // TODO:: service to check if the user is active
 
         // TODO:: service to inform our backend that the app is installed to map the user
