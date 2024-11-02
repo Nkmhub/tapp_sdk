@@ -14,14 +14,15 @@ public class ReferralEngineSDK {
     private let userDefaultsKey = "hasProcessedReferralEngine"
     private var tokenKey = "";
     private var env:Environment = Environment.sandbox;
+    private var authToken = "";
 
     public init() {}
 
     // Main function to process referral based on the affiliate
-    public func processReferralEngine(url: String, environment: Environment, affiliate: Affiliate, appToken: String) {
+    public func processReferralEngine(url: String, environment: Environment, affiliate: Affiliate, appToken: String, tappToken: String) {
         tokenKey = appToken
         env = environment
-
+        authToken = tappToken;
         // TODO:: service to check if the user is active
 
         // TODO:: service to inform our backend that the app is installed to map the user
@@ -62,7 +63,6 @@ public class ReferralEngineSDK {
         adgroup: String,
         creative: String,
         mmp: UrlAffiliate,
-        token: String,
         jsonObject: [String: Any],
         completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
     ) {
@@ -74,7 +74,7 @@ public class ReferralEngineSDK {
             adgroup: adgroup,
             creative: creative,
             mmp: mmp,
-            token: token,
+            token: authToken,
             jsonObject: jsonObject
         ) { result in
             // No need to capture self since it's not used

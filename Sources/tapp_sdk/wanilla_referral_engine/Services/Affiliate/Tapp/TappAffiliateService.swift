@@ -22,6 +22,11 @@ public class TappAffiliateService: AffiliateService {
     public func handleEvent(with eventId: String) {
         // Tapp-specific callback handling logic here
         print("Handling Tapp callback for events with ID: \(eventId)")
+        
+        let apiURL = "https://www.nkmhub.com/api/wre/event"
+        let requestBody: [String: Any] = [
+            "event_name": eventId,
+        ]
     }
     
     public func affiliateUrl(
