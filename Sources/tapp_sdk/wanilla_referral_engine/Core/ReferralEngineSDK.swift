@@ -12,26 +12,60 @@ import Foundation
 
 public class ReferralEngineSDK {
     private let userDefaultsKey = "hasProcessedReferralEngine"
-    private var tokenKey = "";
+    private var appToken = "";
     private var env:Environment = Environment.sandbox;
     private var authToken = ""
 
      public init() {
-         loadAuthTokenFromInfoPlist()
+         loadValuesFromTappPlist()
      }
 
-     private func loadAuthTokenFromInfoPlist() {
-         if let tappToken = Bundle.main.object(forInfoDictionaryKey: "TAPP_TOKEN") as? String {
-             self.authToken = tappToken
-             print("Loaded authToken from Info.plist: \(authToken)")
-         } else {
-             print("Error: TAPP_TOKEN not found in Info.plist")
-         }
-     }
-    // Main function to process referral based on the affiliate
-    public func processReferralEngine(url: String, environment: Environment, affiliate: Affiliate, appToken: String) {
-        tokenKey = appToken
-        env = environment
+    private func loadValuesFromTappPlist() {
+           if let path = Bundle.main.path(forResource: "Tapp", ofType: "plist"),
+              let config = NSDictionary(contentsOfFile: path) as? [String: Any] {
+               
+               // Load TAPP_TOKEN
+               if let tappToken = config["TAPP_TOKEN"] as? String {
+                   self.authToken = tappToken
+                   print("Loaded authToken from Tapp.plist: \(authToken)")
+               } else {
+                   print("Error: TAPP_TOKEN not found in Tapp.plist")
+               }
+
+               // Load APP_TOKEN
+               if let appTokenValue = config["APP_TOKEN"] as? String {
+                   self.appToken = appTokenValue
+                   print("Loaded appToken from Tapp.plist: \(appToken)")
+               } else {
+                   print("Error: APP_TOKEN not found in Tapp.plist")
+               }
+
+               // Load ENVIRONMENT
+               if let environmentValue = config["ENVIRONMENT"] as? String {
+                   switch environmentValue.lowercased() {
+                   case "sandbox":
+                       self.env = .sandbox
+                   case "production":
+                       self.env = .production
+                   default:
+                       print("Invalid ENVIRONMENT value in Tapp.plist, defaulting to .sandbox")
+                       self.env = .sandbox
+                   }
+                   print("Loaded environment from Tapp.plist: \(env)")
+               } else {
+                   print("Error: ENVIRONMENT not found in Tapp.plist")
+               }
+               
+           } else {
+               print("Error: Tapp.plist file not found or not accessible")
+           }
+       }
+   
+
+
+
+// Main function to process referral based on the affiliate
+    public func processReferralEngine(url: String, environment: Environment, affiliate: Affiliate) {
         // TODO:: service to check if the user is active
 
         // TODO:: service to inform our backend that the app is installed to map the user
@@ -61,7 +95,7 @@ public class ReferralEngineSDK {
     
     public func eventHandler(affiliate: Affiliate,eventToken:String) {
         // Use factory to create the right affiliate service
-        let affiliateService = AffiliateServiceFactory.create(affiliate,appToken: tokenKey)
+        let affiliateService = AffiliateServiceFactory.create(affiliate,appToken: appToken)
         affiliateService.handleEvent(with: eventToken )
     }
     
@@ -75,7 +109,7 @@ public class ReferralEngineSDK {
         jsonObject: [String: Any],
         completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
     ) {
-        let affiliateService = AffiliateServiceFactory.create(Affiliate.tapp, appToken: tokenKey)
+        let affiliateService = AffiliateServiceFactory.create(Affiliate.tapp, appToken: appToken)
 
         affiliateService.affiliateUrl(
             wre_token: wre_token,
