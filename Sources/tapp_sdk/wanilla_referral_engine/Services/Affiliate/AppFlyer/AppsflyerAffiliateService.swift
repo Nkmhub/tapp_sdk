@@ -22,7 +22,7 @@ public class AppsflyerAffiliateService: AffiliateService {
         print("Handling Appsflyer callback with URL: \(url)")
     }
     
-    public func handleEvent(with eventId: String) {
+    public func handleEvent(eventId: String, authToken: String?) {
         // Appsflyer-specific callback handling logic here
         print("Handling Appsflyer callback for events with ID: \(eventId)")
     }

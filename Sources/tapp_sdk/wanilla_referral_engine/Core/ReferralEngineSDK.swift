@@ -65,7 +65,7 @@ public class ReferralEngineSDK {
 
 
 // Main function to process referral based on the affiliate
-    public func processReferralEngine(url: String, environment: Environment, affiliate: Affiliate) {
+    public func processReferralEngine(url: String, affiliate: Affiliate) {
         // TODO:: service to check if the user is active
 
         // TODO:: service to inform our backend that the app is installed to map the user
@@ -74,7 +74,7 @@ public class ReferralEngineSDK {
         let affiliateService = AffiliateServiceFactory.create(affiliate, appToken: appToken)
 
         // Initialize the selected affiliate service
-        affiliateService.initialize(environment: environment) { [weak self] result in
+        affiliateService.initialize(environment: env) { [weak self] result in
             guard let self = self else { return } // Ensures self is available within the closure
             
             switch result {
@@ -96,7 +96,7 @@ public class ReferralEngineSDK {
     public func eventHandler(affiliate: Affiliate,eventToken:String) {
         // Use factory to create the right affiliate service
         let affiliateService = AffiliateServiceFactory.create(affiliate,appToken: appToken)
-        affiliateService.handleEvent(with: eventToken )
+        affiliateService.handleEvent(eventId:eventToken, authToken: authToken);
     }
     
     // Method to generate affiliate URL with completion handler

@@ -11,7 +11,7 @@ import Foundation
 public protocol AffiliateService {
     func initialize(environment: Environment, completion: @escaping (Result<Void, Error>) -> Void)
     func handleCallback(with url: String)
-    func handleEvent(with eventId: String)
+    func handleEvent(eventId: String,authToken: String?)
     func affiliateUrl(wre_token: String,
                       influencer: String,
                       adgroup: String,

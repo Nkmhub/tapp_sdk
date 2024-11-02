@@ -12,6 +12,7 @@ import Foundation
 import AdjustSdk // Adjust SDK import
 
 public class AdjustAffiliateService: AffiliateService {
+    
     private var isInitialized = false
     private let appToken: String  // Store the appToken
 
@@ -45,7 +46,7 @@ public class AdjustAffiliateService: AffiliateService {
     }
     
     //TODO:: insert the event logic for adjust
-    public func handleEvent(with eventId: String) {
+    public func handleEvent(eventId: String, authToken: String?) {
         // Validate eventId
         guard !eventId.isEmpty else {
             print("Error: eventId is empty.")
