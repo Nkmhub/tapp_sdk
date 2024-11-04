@@ -73,18 +73,11 @@ public class ReferralEngineSDK {
 
 
 // Main function to process referral based on the affiliate
-    public func processReferralEngine(url: String, affiliate: Affiliate) {
-        
-        guard !url.isEmpty, URL(string: url) != nil else {
-               print("Error: Invalid or empty URL. Exiting processReferralEngine.")
-               return
-           }
+    public func processReferralEngine(url: String?, affiliate: Affiliate) {
         
         let tappService = AffiliateServiceFactory.create(.tapp, appToken: appToken)
-        
-        // Use factory to create the right affiliate service
         let affiliateService = AffiliateServiceFactory.create(affiliate, appToken: appToken)
-
+        
         // Initialize the selected affiliate service
         affiliateService.initialize(environment: env) { [weak self] result in
             guard let self = self else { return } // Ensures self is available within the closure
@@ -96,24 +89,32 @@ public class ReferralEngineSDK {
                     return
                 }
                 
-                // Handle impression callback for Tapp with URL
-                tappService.handleImpression(url: url, authToken: authToken) { result in
-                    switch result {
-                    case .success(let jsonResponse):
-                        print("Tapp handleImpression service success response:", jsonResponse)
-                    case .failure(let error):
-                        print("Tapp handleImpression service error response:", error)
+                // Check if URL is valid
+                if let urlString = url, !urlString.isEmpty, URL(string: urlString) != nil {
+                    
+                    // Handle impression callback for Tapp with URL
+                    tappService.handleImpression(url: urlString, authToken: authToken) { result in
+                        switch result {
+                        case .success(let jsonResponse):
+                            print("Tapp handleImpression service success response:", jsonResponse)
+                        case .failure(let error):
+                            print("Tapp handleImpression service error response:", error)
+                        }
                     }
+                    
+                    // Handle affiliate callback with URL
+                    affiliateService.handleCallback(with: urlString)
+                } else {
+                    print("URL is nil or invalid, skipping handleImpression and handleCallback.")
                 }
                 
-                // Handle affiliate callback with URL
-                affiliateService.handleCallback(with: url)
                 self.setProcessedReferralEngine()
             case .failure(let error):
                 print("Error initializing \(affiliate): \(error)")
             }
         }
     }
+
 
     
     public func eventHandler(affiliate: Affiliate,eventToken:String) {
