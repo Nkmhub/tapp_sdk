@@ -15,6 +15,7 @@ public class ReferralEngineSDK {
     private var appToken = "";
     private var env:Environment = Environment.sandbox;
     private var authToken = ""
+    private var wreToken = ""
 
      public init() {
          loadValuesFromTappPlist()
@@ -56,6 +57,13 @@ public class ReferralEngineSDK {
                    print("Error: ENVIRONMENT not found in Tapp.plist")
                }
                
+               if let wreTokenValue = config["WRE_TOKEN"] as? String {
+                   self.wreToken = wreTokenValue
+                   print("Loaded WRE_TOKEN from Tapp.plist: \(wreToken)")
+               } else {
+                   print("Error: WRE_TOKEN not found in Tapp.plist")
+               }
+               
            } else {
                print("Error: Tapp.plist file not found or not accessible")
            }
@@ -66,10 +74,14 @@ public class ReferralEngineSDK {
 
 // Main function to process referral based on the affiliate
     public func processReferralEngine(url: String, affiliate: Affiliate) {
-        // TODO:: service to check if the user is active
-
-        // TODO:: service to inform our backend that the app is installed to map the user
-
+        
+        guard !url.isEmpty, URL(string: url) != nil else {
+               print("Error: Invalid or empty URL. Exiting processReferralEngine.")
+               return
+           }
+        
+        let tappService = AffiliateServiceFactory.create(.tapp, appToken: appToken)
+        
         // Use factory to create the right affiliate service
         let affiliateService = AffiliateServiceFactory.create(affiliate, appToken: appToken)
 
@@ -83,6 +95,17 @@ public class ReferralEngineSDK {
                     print("Referral engine processing has already been executed.")
                     return
                 }
+                
+                // Handle impression callback for Tapp with URL
+                tappService.handleImpression(url: url, authToken: authToken) { result in
+                    switch result {
+                    case .success(let jsonResponse):
+                        print("Tapp handleImpression service success response:", jsonResponse)
+                    case .failure(let error):
+                        print("Tapp handleImpression service error response:", error)
+                    }
+                }
+                
                 // Handle affiliate callback with URL
                 affiliateService.handleCallback(with: url)
                 self.setProcessedReferralEngine()
@@ -101,7 +124,6 @@ public class ReferralEngineSDK {
     
     // Method to generate affiliate URL with completion handler
     public func affiliateUrl(
-        wre_token: String,
         influencer: String,
         adgroup: String,
         creative: String,
@@ -112,7 +134,7 @@ public class ReferralEngineSDK {
         let affiliateService = AffiliateServiceFactory.create(Affiliate.tapp, appToken: appToken)
 
         affiliateService.affiliateUrl(
-            wre_token: wre_token,
+            wre_token: wreToken,
             influencer: influencer,
             adgroup: adgroup,
             creative: creative,

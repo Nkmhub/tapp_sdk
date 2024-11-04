@@ -8,6 +8,9 @@
 import Foundation
 
 public class TappAffiliateService: AffiliateService {
+    
+    private let baseAPIURL = "https://www.nkmhub.com/api/wre/"
+    
     public func initialize(environment: Environment, completion: @escaping (Result<Void, Error>) -> Void) {
         // Tapp-specific initialization logic here
         print("Initializing Tapp...Not implemented")
@@ -20,7 +23,7 @@ public class TappAffiliateService: AffiliateService {
     }
     
     public func handleEvent(eventId: String, authToken: String?) {
-        // Check if authToken is nil or empty
+
         guard let authToken = authToken, !authToken.isEmpty else {
             print("Error: authToken shouldn't be empty.")
             return
@@ -28,7 +31,7 @@ public class TappAffiliateService: AffiliateService {
         
         print("Handling Tapp callback for events with ID: \(eventId)")
         
-        let apiURL = "https://www.nkmhub.com/api/wre/event"
+        let apiURL = "\(baseAPIURL)event"
         let requestBody: [String: Any] = [
             "event_name": eventId,
         ]
@@ -37,7 +40,6 @@ public class TappAffiliateService: AffiliateService {
             "Authorization": "Bearer \(authToken)"
         ]
         
-        // Make network request to track the event
         let networkManager = NetworkManager()
         networkManager.postRequest(url: apiURL, params: requestBody, headers: headers) { result in
             switch result {
@@ -51,7 +53,6 @@ public class TappAffiliateService: AffiliateService {
         }
     }
 
-
     public func affiliateUrl(
         wre_token: String,
         influencer: String,
@@ -62,10 +63,9 @@ public class TappAffiliateService: AffiliateService {
         jsonObject: [String: Any],
         completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
     ) {
-        // Construct the URL for the API
-        let apiURL = "https://www.nkmhub.com/api/wre/generateUrl"
+
+        let apiURL = "\(baseAPIURL)generateUrl"
         
-        // Prepare the JSON body with the token, affiliate, and username
         let requestBody: [String: Any] = [
             "wre_token": wre_token,
             "mmp": mmp.rawValue,
@@ -75,12 +75,10 @@ public class TappAffiliateService: AffiliateService {
             "data": jsonObject
         ]
         
-        // Set up headers, including the Authorization header
         let headers = [
             "Authorization": "Bearer \(token)"
         ]
         
-        // Initialize NetworkManager and make the POST request
         let networkManager = NetworkManager()
         networkManager.postRequest(url: apiURL, params: requestBody, headers: headers) { result in
             switch result {
@@ -93,5 +91,37 @@ public class TappAffiliateService: AffiliateService {
             }
         }
     }
-
+    
+    public func handleImpression(url: String, authToken: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        
+        let apiURL = "\(baseAPIURL)checkStatus"
+        
+        let requestBody: [String: Any] = [
+            "url": url
+        ]
+        
+        let headers = [
+            "Authorization": "Bearer \(authToken)"
+        ]
+        
+        let networkManager = NetworkManager()
+        
+        networkManager.postRequest(url: apiURL, params: requestBody, headers: headers) { result in
+            switch result {
+            case .success(let jsonResponse):
+                // Expecting a JSON response with "status" and "message"
+                if let status = jsonResponse["status"] as? Int,
+                   let message = jsonResponse["message"] as? String {
+                    print("Service success response: Status: \(status), Message: \(message)")
+                    completion(.success(jsonResponse))
+                } else {
+                    let parsingError = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])
+                    completion(.failure(parsingError))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+    
 }

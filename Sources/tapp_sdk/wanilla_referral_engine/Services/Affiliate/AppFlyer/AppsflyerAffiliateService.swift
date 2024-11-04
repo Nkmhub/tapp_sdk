@@ -38,7 +38,10 @@ public class AppsflyerAffiliateService: AffiliateService {
         completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
     ) {
         print("Handling Appsflyer callback for custom url...not implemented yet")
-
+    }
+    
+    public func handleImpression(url: String, authToken: String, completion: @escaping (Result<[String: Any], any Error>) -> Void) {
+        print("Handle impression is not implemented yet. Use Tapp's method.")
     }
 
 }
