@@ -21,5 +21,9 @@ public class AffiliateServiceFactory {
             return TappAffiliateService()
         }
     }
+    
+    public static func createAdjustService(appToken: String) -> AdjustAffiliateService {
+           return AdjustAffiliateService(appToken: appToken)
+       }
 }
 

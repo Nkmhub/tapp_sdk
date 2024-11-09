@@ -1,12 +1,8 @@
 //
 //  AdjustAffiliateService.swift
-//  test_app
 //
 //  Created by Nikolaos Tseperkas on 28/9/24.
 //
-
-//  AdjustAffiliateService.swift
-//  wanilla_referral_engine/Services/Affiliate
 
 import Foundation
 import AdjustSdk // Adjust SDK import
@@ -45,22 +41,16 @@ public class AdjustAffiliateService: AffiliateService {
         }
     }
     
-    //TODO:: insert the event logic for adjust
     public func handleEvent(eventId: String, authToken: String?) {
-        // Validate eventId
         guard !eventId.isEmpty else {
             print("Error: eventId is empty.")
             return
         }
         
-        // Create ADJEvent instance
         if let event = ADJEvent(eventToken: eventId) {
-            // Track the event
             Adjust.trackEvent(event)
             print("Tracked event on Adjust: \(event.description)")
-            //TODO:: API call to tapp sdk to notify about the event
         } else {
-            // Handle the case where event creation fails
             print("Error: Could not create ADJEvent with eventId \(eventId).")
         }
     }
@@ -78,8 +68,82 @@ public class AdjustAffiliateService: AffiliateService {
         print("Handling Adjust callback for custom url...not implemented yet")
     }
     
-    public func handleImpression(url: String, authToken: String, completion: @escaping (Result<[String: Any], any Error>) -> Void) {
+    public func handleImpression(url: String, authToken: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
         print("Handle impression is not implemented yet. Use Tapp's method.")
     }
+
+    // MARK: - Attribution
+    public func getAttribution(completion: @escaping (ADJAttribution?) -> Void) {
+        Adjust.attribution { attribution in
+            completion(attribution)
+            if let attribution = attribution {
+                print("Attribution: \(attribution)")
+            } else {
+                print("No attribution available.")
+            }
+        }
+    }
+
+    // MARK: - Privacy Compliance
+    public func gdprForgetMe() {
+        Adjust.gdprForgetMe()
+        print("GDPR Forget Me request sent.")
+    }
+
+    public func trackThirdPartySharing(isEnabled: Bool) {
+        guard let thirdPartySharing = ADJThirdPartySharing(isEnabled: NSNumber(value: isEnabled)) else {
+            print("Failed to create ADJThirdPartySharing object.")
+            return
+        }
+        Adjust.trackThirdPartySharing(thirdPartySharing)
+        print("Third-party sharing set to: \(isEnabled).")
+    }
+
+    // MARK: - Monetization
+    public func trackAdRevenue(source: String, revenue: Double, currency: String) {
+        if let adRevenue = ADJAdRevenue(source: source) {
+            adRevenue.setRevenue(revenue, currency: currency)
+            Adjust.trackAdRevenue(adRevenue)
+            print("Tracked ad revenue for \(source).")
+        } else {
+            print("Failed to create ADJAdRevenue object.")
+        }
+    }
+
+    public func verifyAppStorePurchase(transactionId: String, productId: String, completion: @escaping (ADJPurchaseVerificationResult) -> Void) {
+        if let purchase = ADJAppStorePurchase(transactionId: transactionId, productId: productId) {
+            Adjust.verifyAppStorePurchase(purchase) { result in
+                completion(result)
+                print("Purchase verification result: \(result)")
+            }
+        } else {
+            print("Failed to create ADJAppStorePurchase object.")
+        }
+    }
+
+    // MARK: - Push Token
+    public func setPushToken(_ token: String) {
+        Adjust.setPushTokenAs(token)
+        print("Push token set: \(token)")
+    }
+
+    // MARK: - Device IDs
+    public func getAdid(completion: @escaping (String?) -> Void) {
+        Adjust.adid { adid in
+            completion(adid)
+            print("ADID: \(adid ?? "No ADID available")")
+        }
+    }
+
+    public func getIdfa(completion: @escaping (String?) -> Void) {
+        Adjust.idfa { idfa in
+            completion(idfa)
+            print("IDFA: \(idfa ?? "No IDFA available")")
+        }
+    }
     
+    public func test(completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        print("Unique method on Adjust service.")
+        completion(.success(["status": "Test methods executed"]))
+    }
 }
