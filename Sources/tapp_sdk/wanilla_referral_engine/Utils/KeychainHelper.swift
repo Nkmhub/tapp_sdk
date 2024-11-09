@@ -40,8 +40,17 @@ class KeychainHelper {
     func save(key: String, value: Bool) {
         save(key: key, value: value ? "true" : "false")
     }
+    
+    func delete(key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
 
     func getBool(key: String) -> Bool {
         return get(key: key) == "true"
     }
+    
 }

@@ -61,7 +61,7 @@ public class NetworkManager {
         completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
     ) {
         guard let url = URL(string: url) else {
-            completion(.failure(.apiError("Invalid API URL.")))
+            completion(.failure(.apiError(message:"Invalid API URL.")))
             return
         }
 
@@ -81,13 +81,13 @@ public class NetworkManager {
 
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                completion(.failure(.apiError(error.localizedDescription)))
+                completion(.failure(.apiError(message: error.localizedDescription)))
                 return
             }
 
             guard let data = data,
                   let jsonResponse = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                completion(.failure(.apiError("Failed to parse response.")))
+                completion(.failure(.apiError(message:"Failed to parse response.")))
                 return
             }
 

@@ -11,10 +11,45 @@
 import Foundation
 
 public enum ReferralEngineError: Error {
-    case missingUid(String)
-    case apiError(String)
+    case missingAppToken
+    case missingAuthToken
+    case missingTappToken
     case missingParameters
-    case networkError(String)
-    case invalidResponse
-    case unknownErrorL
+    case invalidURL
+    case initializationFailed(affiliate: Affiliate, underlyingError: Error?)
+    case alreadyProcessed
+    case affiliateServiceError(affiliate: Affiliate, underlyingError: Error)
+    case unknownError
+    case apiError(message: String)
+    case networkError(message: String)
+    // You can add more cases as needed
+}
+
+extension ReferralEngineError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .missingAppToken:
+            return "The app token is missing."
+        case .missingAuthToken:
+            return "The authentication token is missing."
+        case .missingTappToken:
+            return "The Tapp token is missing."
+        case .missingParameters:
+            return "Required parameters are missing."
+        case .invalidURL:
+            return "The provided URL is invalid."
+        case .initializationFailed(let affiliate, let underlyingError):
+            return "Initialization failed for \(affiliate). \(underlyingError?.localizedDescription ?? "")"
+        case .alreadyProcessed:
+            return "Referral engine processing has already been executed."
+        case .affiliateServiceError(let affiliate, let underlyingError):
+            return "An error occurred in \(affiliate): \(underlyingError.localizedDescription)"
+        case .unknownError:
+            return "An unknown error occurred."
+        case .apiError(let message):
+            return "API Error: \(message)"
+        case .networkError(let message):
+            return "Network Error: \(message)"
+        }
+    }
 }
