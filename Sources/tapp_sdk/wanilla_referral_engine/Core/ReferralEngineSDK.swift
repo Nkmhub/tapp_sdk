@@ -11,16 +11,18 @@
 import Foundation
 
 public class ReferralEngineSDK {
-    private let userDefaultsKey = "hasProcessedReferralEngine"
-    
+    private let keychainKeyHasProcessed = "hasProcessedReferralEngine"
+
     public init() {}
-    
-    public func processReferralEngine(url: String?,
-                                      appToken: String,
-                                      authToken: String,
-                                      env: Environment,
-                                      wreToken: String,
-                                      affiliate: Affiliate) {
+
+    public func processReferralEngine(
+        url: String?,
+        appToken: String,
+        authToken: String,
+        env: Environment,
+        wreToken: String,
+        affiliate: Affiliate
+    ) {
         // Save parameters to Keychain
         KeychainHelper.shared.save(key: "appToken", value: appToken)
         KeychainHelper.shared.save(key: "authToken", value: authToken)
@@ -30,18 +32,17 @@ public class ReferralEngineSDK {
         // Now use these values in your flow
         let tappService = AffiliateServiceFactory.create(.tapp, appToken: appToken)
         let affiliateService = AffiliateServiceFactory.create(affiliate, appToken: appToken)
-        
-        // Continue the rest of the method as before
+
         affiliateService.initialize(environment: env) { [weak self] result in
             guard let self = self else { return }
-            
+
             switch result {
             case .success:
                 if self.hasProcessedReferralEngine() {
                     print("Referral engine processing has already been executed.")
                     return
                 }
-                
+
                 if let urlString = url, !urlString.isEmpty, URL(string: urlString) != nil {
                     tappService.handleImpression(url: urlString, authToken: authToken) { result in
                         switch result {
@@ -55,7 +56,7 @@ public class ReferralEngineSDK {
                 } else {
                     print("URL is nil or invalid, skipping handleImpression and handleCallback.")
                 }
-                
+
                 self.setProcessedReferralEngine()
             case .failure(let error):
                 print("Error initializing \(affiliate): \(error)")
@@ -101,11 +102,12 @@ public class ReferralEngineSDK {
         }
     }
 
+    // Use Keychain to track referral process state
     private func setProcessedReferralEngine() {
-        UserDefaults.standard.set(true, forKey: userDefaultsKey)
+        KeychainHelper.shared.save(key: keychainKeyHasProcessed, value: true)
     }
 
     private func hasProcessedReferralEngine() -> Bool {
-        return UserDefaults.standard.bool(forKey: userDefaultsKey)
+        return KeychainHelper.shared.getBool(key: keychainKeyHasProcessed)
     }
 }
