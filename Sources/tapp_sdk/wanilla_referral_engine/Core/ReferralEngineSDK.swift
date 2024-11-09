@@ -14,14 +14,14 @@ public class ReferralEngineSDK {
         appToken: String,
         authToken: String,
         env: Environment,
-        wreToken: String,
+        tappToken: String,
         affiliate: Affiliate
     ) {
         // Save parameters to Keychain
         KeychainHelper.shared.save(key: "appToken", value: appToken)
         KeychainHelper.shared.save(key: "authToken", value: authToken)
         KeychainHelper.shared.save(key: "env", value: env.rawValue)
-        KeychainHelper.shared.save(key: "wreToken", value: wreToken)
+        KeychainHelper.shared.save(key: "tappToken", value: tappToken)
         
         // Now use these values in your flow
         let tappService = AffiliateServiceFactory.create(.tapp, appToken: appToken)
