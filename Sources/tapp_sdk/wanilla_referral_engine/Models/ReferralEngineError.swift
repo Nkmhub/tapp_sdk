@@ -13,4 +13,8 @@ import Foundation
 public enum ReferralEngineError: Error {
     case missingUid(String)
     case apiError(String)
+    case missingParameters
+    case networkError(String)
+    case invalidResponse
+    case unknownErrorL
 }

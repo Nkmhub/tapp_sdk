@@ -12,75 +12,28 @@ import Foundation
 
 public class ReferralEngineSDK {
     private let userDefaultsKey = "hasProcessedReferralEngine"
-    private var appToken = "";
-    private var env:Environment = Environment.sandbox;
-    private var authToken = ""
-    private var wreToken = ""
-
-     public init() {
-         loadValuesFromTappPlist()
-     }
-
-    private func loadValuesFromTappPlist() {
-           if let path = Bundle.main.path(forResource: "Tapp", ofType: "plist"),
-              let config = NSDictionary(contentsOfFile: path) as? [String: Any] {
-               
-               // Load TAPP_TOKEN
-               if let tappToken = config["TAPP_TOKEN"] as? String {
-                   self.authToken = tappToken
-                   print("Loaded authToken from Tapp.plist: \(authToken)")
-               } else {
-                   print("Error: TAPP_TOKEN not found in Tapp.plist")
-               }
-
-               // Load APP_TOKEN
-               if let appTokenValue = config["APP_TOKEN"] as? String {
-                   self.appToken = appTokenValue
-                   print("Loaded appToken from Tapp.plist: \(appToken)")
-               } else {
-                   print("Error: APP_TOKEN not found in Tapp.plist")
-               }
-
-               // Load ENVIRONMENT
-               if let environmentValue = config["ENVIRONMENT"] as? String {
-                   switch environmentValue.lowercased() {
-                   case "sandbox":
-                       self.env = .sandbox
-                   case "production":
-                       self.env = .production
-                   default:
-                       print("Invalid ENVIRONMENT value in Tapp.plist, defaulting to .sandbox")
-                       self.env = .sandbox
-                   }
-                   print("Loaded environment from Tapp.plist: \(env)")
-               } else {
-                   print("Error: ENVIRONMENT not found in Tapp.plist")
-               }
-               
-               if let wreTokenValue = config["WRE_TOKEN"] as? String {
-                   self.wreToken = wreTokenValue
-                   print("Loaded WRE_TOKEN from Tapp.plist: \(wreToken)")
-               } else {
-                   print("Error: WRE_TOKEN not found in Tapp.plist")
-               }
-               
-           } else {
-               print("Error: Tapp.plist file not found or not accessible")
-           }
-       }
-   
-
-
-
-// Main function to process referral based on the affiliate
-    public func processReferralEngine(url: String?, affiliate: Affiliate) {
+    
+    public init() {}
+    
+    public func processReferralEngine(url: String?,
+                                      appToken: String,
+                                      authToken: String,
+                                      env: Environment,
+                                      wreToken: String,
+                                      affiliate: Affiliate) {
+        // Save parameters to Keychain
+        KeychainHelper.shared.save(key: "appToken", value: appToken)
+        KeychainHelper.shared.save(key: "authToken", value: authToken)
+        KeychainHelper.shared.save(key: "env", value: env.rawValue)
+        KeychainHelper.shared.save(key: "wreToken", value: wreToken)
         
+        // Now use these values in your flow
         let tappService = AffiliateServiceFactory.create(.tapp, appToken: appToken)
         let affiliateService = AffiliateServiceFactory.create(affiliate, appToken: appToken)
         
-        // Initialize the selected affiliate service
+        // Continue the rest of the method as before
         affiliateService.initialize(environment: env) { [weak self] result in
-            guard let self = self else { return } // Ensures self is available within the closure
+            guard let self = self else { return }
             
             switch result {
             case .success:
@@ -89,10 +42,7 @@ public class ReferralEngineSDK {
                     return
                 }
                 
-                // Check if URL is valid
                 if let urlString = url, !urlString.isEmpty, URL(string: urlString) != nil {
-                    
-                    // Handle impression callback for Tapp with URL
                     tappService.handleImpression(url: urlString, authToken: authToken) { result in
                         switch result {
                         case .success(let jsonResponse):
@@ -101,8 +51,6 @@ public class ReferralEngineSDK {
                             print("Tapp handleImpression service error response:", error)
                         }
                     }
-                    
-                    // Handle affiliate callback with URL
                     affiliateService.handleCallback(with: urlString)
                 } else {
                     print("URL is nil or invalid, skipping handleImpression and handleCallback.")
@@ -115,15 +63,16 @@ public class ReferralEngineSDK {
         }
     }
 
-
-    
-    public func eventHandler(affiliate: Affiliate,eventToken:String) {
-        // Use factory to create the right affiliate service
-        let affiliateService = AffiliateServiceFactory.create(affiliate,appToken: appToken)
-        affiliateService.handleEvent(eventId:eventToken, authToken: authToken);
+    public func eventHandler(affiliate: Affiliate, eventToken: String) {
+        if let appToken = KeychainHelper.shared.get(key: "appToken"),
+           let authToken = KeychainHelper.shared.get(key: "authToken") {
+            let affiliateService = AffiliateServiceFactory.create(affiliate, appToken: appToken)
+            affiliateService.handleEvent(eventId: eventToken, authToken: authToken)
+        } else {
+            print("Error: Missing required tokens in Keychain")
+        }
     }
-    
-    // Method to generate affiliate URL with completion handler
+
     public func affiliateUrl(
         influencer: String,
         adgroup: String,
@@ -132,37 +81,24 @@ public class ReferralEngineSDK {
         jsonObject: [String: Any],
         completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
     ) {
-        let affiliateService = AffiliateServiceFactory.create(Affiliate.tapp, appToken: appToken)
-
-        affiliateService.affiliateUrl(
-            wre_token: wreToken,
-            influencer: influencer,
-            adgroup: adgroup,
-            creative: creative,
-            mmp: mmp,
-            token: authToken,
-            jsonObject: jsonObject
-        ) { result in
-            // No need to capture self since it's not used
-            switch result {
-            case .success(let jsonResponse):
-                // Pass the response to the completion handler
-                completion(.success(jsonResponse))
-                print("jsonResponse:", jsonResponse)
-            case .failure(let error):
-                // Pass the error to the completion handler
-                completion(.failure(error))
-                print("Error:", error)
-            }
+        if let appToken = KeychainHelper.shared.get(key: "appToken"),
+           let authToken = KeychainHelper.shared.get(key: "authToken"),
+           let wreToken = KeychainHelper.shared.get(key: "wreToken") {
+            
+            let affiliateService = AffiliateServiceFactory.create(Affiliate.tapp, appToken: appToken)
+            affiliateService.affiliateUrl(
+                wre_token: wreToken,
+                influencer: influencer,
+                adgroup: adgroup,
+                creative: creative,
+                mmp: mmp,
+                token: authToken,
+                jsonObject: jsonObject,
+                completion: completion
+            )
+        } else {
+            completion(.failure(.missingParameters))
         }
-    }
-
-    // Helper function to extract uId from the URL
-    public func getUidParam(from url: String) -> String? {
-        guard let url = URL(string: url) else { return nil }
-        return URLComponents(url: url, resolvingAgainstBaseURL: false)?
-            .queryItems?
-            .first { $0.name == "uId" }?.value
     }
 
     private func setProcessedReferralEngine() {
