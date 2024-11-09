@@ -12,12 +12,13 @@ public protocol AffiliateService {
     func initialize(environment: Environment, completion: @escaping (Result<Void, Error>) -> Void)
     func handleCallback(with url: String)
     func handleEvent(eventId: String,authToken: String?)
-    func affiliateUrl(wre_token: String,
-                      influencer: String,
+    func affiliateUrl(tapp_token: String,
+                      bundle_id:String,
+                      mmp: Int,
                       adgroup: String,
                       creative: String,
-                      mmp: UrlAffiliate,
-                      token: String,
+                      influencer: String,
+                      authToken: String,
                       jsonObject: [String: Any],
                       completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void)
     func handleImpression(url: String, authToken: String, completion: @escaping (Result<[String: Any], Error>) -> Void)

@@ -11,6 +11,7 @@
 import Foundation
 
 public class AppsflyerAffiliateService: AffiliateService {
+    
     public func initialize(environment: Environment, completion: @escaping (Result<Void, Error>) -> Void) {
         // Appsflyer-specific initialization logic here
         print("Initializing Appsflyer...")
@@ -27,16 +28,7 @@ public class AppsflyerAffiliateService: AffiliateService {
         print("Handling Appsflyer callback for events with ID: \(eventId)")
     }
     
-    public func affiliateUrl(
-        wre_token: String,
-        influencer: String,
-        adgroup: String,
-        creative: String,
-        mmp: UrlAffiliate,
-        token: String,
-        jsonObject: [String: Any],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
-    ) {
+    public func affiliateUrl(tapp_token: String, bundle_id: String, mmp: Int, adgroup: String, creative: String, influencer: String, authToken: String, jsonObject: [String : Any], completion: @escaping (Result<[String : Any], ReferralEngineError>) -> Void) {
         print("Handling Appsflyer callback for custom url...not implemented yet")
     }
     

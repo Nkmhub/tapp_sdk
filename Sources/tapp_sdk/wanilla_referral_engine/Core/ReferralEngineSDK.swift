@@ -72,22 +72,32 @@ public class ReferralEngineSDK {
         influencer: String,
         adgroup: String,
         creative: String,
-        mmp: UrlAffiliate,
+        mmp: Affiliate,
         jsonObject: [String: Any],
         completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
     ) {
         if let appToken = KeychainHelper.shared.get(key: "appToken"),
            let authToken = KeychainHelper.shared.get(key: "authToken"),
-           let wreToken = KeychainHelper.shared.get(key: "wreToken") {
+           let tappToken = KeychainHelper.shared.get(key: "tappToken") {
+            
+            // Retrieve the bundle identifier
+            guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+                print("Error: Unable to retrieve bundle identifier")
+                completion(.failure(.missingParameters))
+                return
+            }
+            
+            print("Bundle Identifier: \(bundleIdentifier)")
             
             let affiliateService = AffiliateServiceFactory.create(Affiliate.tapp, appToken: appToken)
             affiliateService.affiliateUrl(
-                wre_token: wreToken,
-                influencer: influencer,
+                tapp_token: tappToken,
+                bundle_id: bundleIdentifier,
+                mmp: mmp.rawValue,
                 adgroup: adgroup,
                 creative: creative,
-                mmp: mmp,
-                token: authToken,
+                influencer: influencer,
+                authToken: authToken,
                 jsonObject: jsonObject,
                 completion: completion
             )
@@ -95,6 +105,7 @@ public class ReferralEngineSDK {
             completion(.failure(.missingParameters))
         }
     }
+
     
     // MARK: - Adjust Specific Methods
     

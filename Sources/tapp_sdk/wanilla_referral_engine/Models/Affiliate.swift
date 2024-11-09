@@ -8,10 +8,10 @@
 //  Affiliate.swift
 //  wanilla_referral_engine/Models
 
-public enum Affiliate: String {
-    case adjust
-    case appsflyer
-    case tapp
+public enum Affiliate: Int {
+    case adjust = 1
+    case appsflyer = 2
+    case tapp = 3
 }
 
 public enum UrlAffiliate: String {

@@ -55,19 +55,10 @@ public class AdjustAffiliateService: AffiliateService {
         }
     }
     
-    public func affiliateUrl(
-        wre_token: String,
-        influencer: String,
-        adgroup: String,
-        creative: String,
-        mmp: UrlAffiliate,
-        token: String,
-        jsonObject: [String: Any],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
-    ) {
+    public func affiliateUrl(tapp_token: String, bundle_id: String, mmp: Int, adgroup: String, creative: String, influencer: String, authToken: String, jsonObject: [String : Any], completion: @escaping (Result<[String : Any], ReferralEngineError>) -> Void) {
         print("Handling Adjust callback for custom url...not implemented yet")
     }
-    
+
     public func handleImpression(url: String, authToken: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
         print("Handle impression is not implemented yet. Use Tapp's method.")
     }

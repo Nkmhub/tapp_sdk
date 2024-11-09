@@ -52,31 +52,23 @@ public class TappAffiliateService: AffiliateService {
             }
         }
     }
-
-    public func affiliateUrl(
-        wre_token: String,
-        influencer: String,
-        adgroup: String,
-        creative: String,
-        mmp: UrlAffiliate,
-        token: String,
-        jsonObject: [String: Any],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
-    ) {
+    
+    public func affiliateUrl(tapp_token: String, bundle_id: String, mmp: Int, adgroup: String, creative: String, influencer: String, authToken: String, jsonObject: [String : Any], completion: @escaping (Result<[String : Any], ReferralEngineError>) -> Void) {
 
         let apiURL = "\(baseAPIURL)generateUrl"
         
         let requestBody: [String: Any] = [
-            "wre_token": wre_token,
-            "mmp": mmp.rawValue,
-            "influencer": influencer,
+            "tapp_token": tapp_token,
+            "bundle_id":bundle_id,
+            "mmp": mmp,
             "adgroup": adgroup,
             "creative": creative,
+            "influencer": influencer,
             "data": jsonObject
         ]
         
         let headers = [
-            "Authorization": "Bearer \(token)"
+            "Authorization": "Bearer \(authToken)"
         ]
         
         let networkManager = NetworkManager()
