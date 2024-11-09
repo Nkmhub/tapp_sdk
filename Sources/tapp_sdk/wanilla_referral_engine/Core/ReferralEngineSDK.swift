@@ -6,7 +6,6 @@ import AdjustSdk
 
 public class ReferralEngineSDK {
     private let keychainKeyHasProcessed = "hasProcessedReferralEngine"
-    private var currentAffiliate: Affiliate?
     
     public init() {}
     
@@ -23,9 +22,6 @@ public class ReferralEngineSDK {
         KeychainHelper.shared.save(key: "authToken", value: authToken)
         KeychainHelper.shared.save(key: "env", value: env.rawValue)
         KeychainHelper.shared.save(key: "wreToken", value: wreToken)
-        
-        // Store the affiliate for later use
-        self.currentAffiliate = affiliate
         
         // Now use these values in your flow
         let tappService = AffiliateServiceFactory.create(.tapp, appToken: appToken)
@@ -104,11 +100,6 @@ public class ReferralEngineSDK {
     
     /// Retrieves Adjust attribution information.
     public func getAdjustAttribution(completion: @escaping (ADJAttribution?) -> Void) {
-        guard let affiliate = self.currentAffiliate, affiliate == .adjust else {
-            print("Error: Current affiliate is not Adjust")
-            completion(nil)
-            return
-        }
         guard let appToken = KeychainHelper.shared.get(key: "appToken") else {
             print("Error: Missing appToken in Keychain")
             completion(nil)
@@ -120,10 +111,6 @@ public class ReferralEngineSDK {
     
     /// Sends a GDPR "Forget Me" request to Adjust.
     public func adjustGdprForgetMe() {
-        guard let affiliate = self.currentAffiliate, affiliate == .adjust else {
-            print("Error: Current affiliate is not Adjust")
-            return
-        }
         guard let appToken = KeychainHelper.shared.get(key: "appToken") else {
             print("Error: Missing appToken in Keychain")
             return
@@ -134,10 +121,6 @@ public class ReferralEngineSDK {
     
     /// Tracks third-party sharing preference in Adjust.
     public func adjustTrackThirdPartySharing(isEnabled: Bool) {
-        guard let affiliate = self.currentAffiliate, affiliate == .adjust else {
-            print("Error: Current affiliate is not Adjust")
-            return
-        }
         guard let appToken = KeychainHelper.shared.get(key: "appToken") else {
             print("Error: Missing appToken in Keychain")
             return
@@ -148,10 +131,6 @@ public class ReferralEngineSDK {
     
     /// Tracks ad revenue in Adjust.
     public func adjustTrackAdRevenue(source: String, revenue: Double, currency: String) {
-        guard let affiliate = self.currentAffiliate, affiliate == .adjust else {
-            print("Error: Current affiliate is not Adjust")
-            return
-        }
         guard let appToken = KeychainHelper.shared.get(key: "appToken") else {
             print("Error: Missing appToken in Keychain")
             return
@@ -162,11 +141,6 @@ public class ReferralEngineSDK {
     
     /// Verifies an App Store purchase with Adjust.
     public func adjustVerifyAppStorePurchase(transactionId: String, productId: String, completion: @escaping (ADJPurchaseVerificationResult) -> Void) {
-        guard let affiliate = self.currentAffiliate, affiliate == .adjust else {
-            print("Error: Current affiliate is not Adjust")
-            completion(ADJPurchaseVerificationResult())
-            return
-        }
         guard let appToken = KeychainHelper.shared.get(key: "appToken") else {
             print("Error: Missing appToken in Keychain")
             completion(ADJPurchaseVerificationResult())
@@ -178,10 +152,6 @@ public class ReferralEngineSDK {
     
     /// Sets the push notification token in Adjust.
     public func adjustSetPushToken(_ token: String) {
-        guard let affiliate = self.currentAffiliate, affiliate == .adjust else {
-            print("Error: Current affiliate is not Adjust")
-            return
-        }
         guard let appToken = KeychainHelper.shared.get(key: "appToken") else {
             print("Error: Missing appToken in Keychain")
             return
@@ -192,11 +162,6 @@ public class ReferralEngineSDK {
     
     /// Retrieves the Adjust Device Identifier (ADID).
     public func adjustGetAdid(completion: @escaping (String?) -> Void) {
-        guard let affiliate = self.currentAffiliate, affiliate == .adjust else {
-            print("Error: Current affiliate is not Adjust")
-            completion(nil)
-            return
-        }
         guard let appToken = KeychainHelper.shared.get(key: "appToken") else {
             print("Error: Missing appToken in Keychain")
             completion(nil)
@@ -208,11 +173,6 @@ public class ReferralEngineSDK {
     
     /// Retrieves the Identifier for Advertisers (IDFA).
     public func adjustGetIdfa(completion: @escaping (String?) -> Void) {
-        guard let affiliate = self.currentAffiliate, affiliate == .adjust else {
-            print("Error: Current affiliate is not Adjust")
-            completion(nil)
-            return
-        }
         guard let appToken = KeychainHelper.shared.get(key: "appToken") else {
             print("Error: Missing appToken in Keychain")
             completion(nil)
