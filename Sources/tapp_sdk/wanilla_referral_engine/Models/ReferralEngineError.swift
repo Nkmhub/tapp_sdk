@@ -14,14 +14,15 @@ public enum ReferralEngineError: Error {
     case missingAppToken
     case missingAuthToken
     case missingTappToken
-    case missingParameters
     case invalidURL
     case initializationFailed(affiliate: Affiliate, underlyingError: Error?)
     case alreadyProcessed
     case affiliateServiceError(affiliate: Affiliate, underlyingError: Error)
-    case unknownError
-    case apiError(message: String)
+    case unknownError(details:String?)
+    case apiError(message: String,endpoint: String)
     case networkError(message: String)
+    case missingParameters(details: String? = nil) // Add details
+
     // You can add more cases as needed
 }
 
@@ -34,8 +35,6 @@ extension ReferralEngineError: LocalizedError {
             return "The authentication token is missing."
         case .missingTappToken:
             return "The Tapp token is missing."
-        case .missingParameters:
-            return "Required parameters are missing."
         case .invalidURL:
             return "The provided URL is invalid."
         case .initializationFailed(let affiliate, let underlyingError):
@@ -44,12 +43,14 @@ extension ReferralEngineError: LocalizedError {
             return "Referral engine processing has already been executed."
         case .affiliateServiceError(let affiliate, let underlyingError):
             return "An error occurred in \(affiliate): \(underlyingError.localizedDescription)"
-        case .unknownError:
-            return "An unknown error occurred."
-        case .apiError(let message):
-            return "API Error: \(message)"
+        case .unknownError(let details):
+            return "An unknown error occurred. \(details ?? "No additional details")"
+        case .apiError(let message,let endpoint):
+            return "API Error: \(message), on endpoint: \(endpoint)"
         case .networkError(let message):
             return "Network Error: \(message)"
+        case .missingParameters(let details):
+                  return "Missing parameters: \(details ?? "No additional details")"
         }
     }
 }
