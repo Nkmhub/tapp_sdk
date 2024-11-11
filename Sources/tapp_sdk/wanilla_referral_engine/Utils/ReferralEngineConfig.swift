@@ -9,7 +9,6 @@ import Foundation
 
 public struct ReferralEngineConfig {
     public let url: String?
-    public let appToken: String
     public let authToken: String
     public let env: Environment
     public let tappToken: String
@@ -24,7 +23,6 @@ public struct ReferralEngineConfig {
         affiliate: Affiliate
     ) {
         self.url = url
-        self.appToken = appToken
         self.authToken = authToken
         self.env = env
         self.tappToken = tappToken

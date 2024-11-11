@@ -14,6 +14,7 @@ public class ReferralEngineSDK {
         switch affiliate {
         case .adjust:
             let adjustService = AdjustAffiliateService(appToken: appToken)
+            KeychainCredentials.appToken = appToken
             self.affiliateService = adjustService
             self.adjustSpecificService = adjustService
         case .tapp:
@@ -28,18 +29,10 @@ public class ReferralEngineSDK {
         config: ReferralEngineConfig,
         completion: @escaping (Result<Void, ReferralEngineError>) -> Void
     ) {
-
         // Save parameters to KeychainCredentials
-        KeychainCredentials.appToken = config.appToken
         KeychainCredentials.authToken = config.authToken
         KeychainCredentials.environment = config.env.rawValue
         KeychainCredentials.tappToken = config.tappToken
-
-        if hasProcessedReferralEngine() {
-            Logger.logError(ReferralEngineError.alreadyProcessed)
-            completion(.failure(.alreadyProcessed))
-            return
-        }
 
         guard let service = affiliateService else {
             completion(
@@ -49,15 +42,22 @@ public class ReferralEngineSDK {
             return
         }
 
+        // Always initialize the affiliate service
         service.initialize(environment: config.env) { [weak self] result in
             switch result {
             case .success:
-                self?.handleReferralCallback(
-                    url: config.url,
-                    authToken: config.authToken,
-                    service: service,
-                    completion: completion
-                )
+                // Only handle the referral callback if not already processed
+                if self?.hasProcessedReferralEngine() == true {
+                    Logger.logError(ReferralEngineError.alreadyProcessed)
+                    completion(.failure(.alreadyProcessed))
+                } else {
+                    self?.handleReferralCallback(
+                        url: config.url,
+                        authToken: config.authToken,
+                        service: service,
+                        completion: completion
+                    )
+                }
             case .failure(let error):
                 completion(
                     .failure(
@@ -102,11 +102,17 @@ public class ReferralEngineSDK {
 
     // MARK: - Handle Event
     public func handleEvent(config: EventConfig) {
-        guard let service = affiliateService else {
-            Logger.logError(
-                ReferralEngineError.missingParameters(
-                    details: "Affiliate service not configured"))
-            return
+        let service: AffiliateService
+
+        // Initialize the service based on the affiliate
+        switch config.affiliate {
+        case .adjust:
+            service = AdjustAffiliateService(
+                appToken: KeychainCredentials.appToken ?? "")
+        case .tapp:
+            service = TappAffiliateService()
+        case .appsflyer:
+            service = AppsflyerAffiliateService()
         }
 
         service.handleEvent(
@@ -120,14 +126,20 @@ public class ReferralEngineSDK {
         completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
             Void
     ) {
-        guard let service = affiliateService else {
-            completion(
-                .failure(
-                    .missingParameters(
-                        details: "Affiliate service not configured")))
-            return
+        let service: AffiliateService
+
+        // Initialize the service based on the MMP type
+        switch config.mmp {
+        case .adjust:
+            service = AdjustAffiliateService(
+                appToken: KeychainCredentials.appToken ?? "")
+        case .tapp:
+            service = TappAffiliateService()
+        case .appsflyer:
+            service = AppsflyerAffiliateService()
         }
 
+        // Proceed with generating the affiliate URL
         guard let authToken = KeychainCredentials.authToken,
             let tappToken = KeychainCredentials.tappToken,
             let bundleIdentifier = Bundle.main.bundleIdentifier
@@ -141,6 +153,7 @@ public class ReferralEngineSDK {
             return
         }
 
+        // Use 'service' to call affiliateUrl
         service.affiliateUrl(
             tapp_token: tappToken,
             bundle_id: bundleIdentifier,
