@@ -126,18 +126,7 @@ public class ReferralEngineSDK {
         completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
             Void
     ) {
-        let service: AffiliateService
-
-        // Initialize the service based on the MMP type
-        switch config.mmp {
-        case .adjust:
-            service = AdjustAffiliateService(
-                appToken: KeychainCredentials.appToken ?? "")
-        case .tapp:
-            service = TappAffiliateService()
-        case .appsflyer:
-            service = AppsflyerAffiliateService()
-        }
+        let service: AffiliateService = TappAffiliateService()
 
         // Proceed with generating the affiliate URL
         guard let authToken = KeychainCredentials.authToken,
