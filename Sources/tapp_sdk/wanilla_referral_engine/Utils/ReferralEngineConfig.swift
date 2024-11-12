@@ -16,7 +16,6 @@ public struct ReferralEngineConfig {
 
     public init(
         url: String?,
-        appToken: String,
         authToken: String,
         env: Environment,
         tappToken: String,
