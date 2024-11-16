@@ -30,14 +30,10 @@ public class ReferralEngineSDK {
 
         KeychainCredentials.bundleId = bundleIdentifier
 
-        guard let tappSpecificService = tappSpecificService else {
-            completion(
-                .failure(
-                    .missingParameters(details: "tappSpecificService is nil")))
-            return
-        }
-
-        tappSpecificService.getSecrets(
+        let tappService = TappAffiliateService()
+        self.tappSpecificService = tappService
+        
+        tappService.getSecrets(
             auth_token: config.authToken,
             tapp_token: config.tappToken,
             bundle_id: bundleIdentifier,
@@ -133,7 +129,7 @@ public class ReferralEngineSDK {
         }
 
         service.handleCallback(with: urlString)
-
+        //TODO:: replace the service with the tapp service
         service.handleImpression(url: urlString, authToken: authToken) {
             [weak self] result in
             switch result {
