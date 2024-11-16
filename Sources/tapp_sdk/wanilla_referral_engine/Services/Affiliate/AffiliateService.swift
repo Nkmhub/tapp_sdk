@@ -10,7 +10,7 @@ import Foundation
 
 public protocol AffiliateService {
     func initialize(
-        environment: Environment,
+        environment: String,
         completion: @escaping (Result<Void, Error>) -> Void)
     func handleCallback(with url: String)
     func handleEvent(eventId: String, authToken: String?)

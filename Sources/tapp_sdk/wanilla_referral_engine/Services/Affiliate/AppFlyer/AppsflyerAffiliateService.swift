@@ -11,8 +11,11 @@
 import Foundation
 
 public class AppsflyerAffiliateService: AffiliateService {
-    
-    public func initialize(environment: Environment, completion: @escaping (Result<Void, Error>) -> Void) {
+
+    public func initialize(
+        environment: String,
+        completion: @escaping (Result<Void, any Error>) -> Void
+    ) {
         Logger.logInfo("Initializing Appsflyer...")
         // Appsflyer-specific initialization logic here
         completion(.success(()))
@@ -27,17 +30,19 @@ public class AppsflyerAffiliateService: AffiliateService {
         Logger.logInfo("Handling Appsflyer callback with URL: \(validURL)")
         // Appsflyer-specific callback handling logic here
     }
-    
+
     public func handleEvent(eventId: String, authToken: String?) {
         guard !eventId.isEmpty else {
-            Logger.logError(ReferralEngineError.missingParameters(details: "Event ID is empty."))
+            Logger.logError(
+                ReferralEngineError.missingParameters(
+                    details: "Event ID is empty."))
             return
         }
 
         Logger.logInfo("Handling Appsflyer event with ID: \(eventId)")
         // Appsflyer-specific event handling logic here
     }
-    
+
     public func affiliateUrl(
         tapp_token: String,
         bundle_id: String,
@@ -47,18 +52,32 @@ public class AppsflyerAffiliateService: AffiliateService {
         influencer: String,
         authToken: String,
         jsonObject: [String: Any],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
+            Void
     ) {
-        Logger.logInfo("Handling Appsflyer affiliate URL generation... Not implemented yet.")
-        completion(.failure(.unknownError(details: "Affiliate URL method not implemented for Appsflyer.")))
+        Logger.logInfo(
+            "Handling Appsflyer affiliate URL generation... Not implemented yet."
+        )
+        completion(
+            .failure(
+                .unknownError(
+                    details:
+                        "Affiliate URL method not implemented for Appsflyer.")))
     }
-    
+
     public func handleImpression(
         url: String,
         authToken: String,
         completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
-        Logger.logInfo("Handle impression is not implemented in Appsflyer. Use Tapp's method.")
-        completion(.failure(ReferralEngineError.unknownError(details: "Impression handling not supported in AppsflyerAffiliateService.")))
+        Logger.logInfo(
+            "Handle impression is not implemented in Appsflyer. Use Tapp's method."
+        )
+        completion(
+            .failure(
+                ReferralEngineError.unknownError(
+                    details:
+                        "Impression handling not supported in AppsflyerAffiliateService."
+                )))
     }
 }

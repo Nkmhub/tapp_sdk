@@ -63,6 +63,34 @@ struct KeychainCredentials {
         }
     }
     
+    // MARK: - MMP
+    static var mmp: String? {
+        get {
+            return KeychainHelper.shared.get(key: "mmp")
+        }
+        set {
+            if let value = newValue {
+                KeychainHelper.shared.save(key: "mmp", value: value)
+            } else {
+                KeychainHelper.shared.delete(key: "mmp")
+            }
+        }
+    }
+    
+    // MARK: - Bundle_id
+    static var bundleId: String? {
+        get {
+            return KeychainHelper.shared.get(key: "bundleId")
+        }
+        set {
+            if let value = newValue {
+                KeychainHelper.shared.save(key: "bundleId", value: value)
+            } else {
+                KeychainHelper.shared.delete(key: "bundleId")
+            }
+        }
+    }
+    
     // MARK: - Processed Referral Engine Flag
     static var hasProcessedReferralEngine: Bool {
         get {

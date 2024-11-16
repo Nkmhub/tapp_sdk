@@ -15,7 +15,7 @@ public enum ReferralEngineError: Error {
     case missingAuthToken
     case missingTappToken
     case invalidURL
-    case initializationFailed(affiliate: Affiliate, underlyingError: Error?)
+    case initializationFailed(affiliate: String, underlyingError: Error?)
     case alreadyProcessed
     case affiliateServiceError(affiliate: Affiliate, underlyingError: Error)
     case unknownError(details:String?)

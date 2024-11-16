@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ReferralEngineConfig {
+public struct ReferralEngineInitConfig {
     public let url: String?
     public let authToken: String
     public let env: Environment
@@ -26,6 +26,16 @@ public struct ReferralEngineConfig {
         self.env = env
         self.tappToken = tappToken
         self.affiliate = affiliate
+    }
+}
+
+public struct ReferralEngineConfig {
+    public let url: String?
+
+    public init(
+        url: String?
+    ) {
+        self.url = url
     }
 }
 
@@ -51,7 +61,6 @@ public struct AffiliateUrlConfig {
     }
 }
 
-
 public struct EventConfig {
     public let affiliate: Affiliate
     public let eventToken: String
@@ -65,8 +74,8 @@ public struct EventConfig {
 public struct TappEventConfig {
     public let event_name: String
     public let event_action: EventAction
-    public let event_custom_action: String? // Optional since it only applies to custom actions
-    
+    public let event_custom_action: String?  // Optional since it only applies to custom actions
+
     public init(
         event_name: String,
         event_action: EventAction,
@@ -76,7 +85,7 @@ public struct TappEventConfig {
         self.event_action = event_action
         self.event_custom_action = event_custom_action
     }
-    
+
     // Validate if event_action is .custom and event_custom_action is provided
     public func isValid() -> Bool {
         if case .custom = event_action {
@@ -90,8 +99,8 @@ public enum EventAction {
     case click
     case impression
     case count
-    case custom(String) // Associate a String value for custom actions
-    
+    case custom(String)  // Associate a String value for custom actions
+
     public var rawValue: Int {
         switch self {
         case .click: return 1
@@ -100,7 +109,7 @@ public enum EventAction {
         case .custom: return -1
         }
     }
-    
+
     public init?(rawValue: Int, customAction: String? = nil) {
         switch rawValue {
         case 1: self = .click
@@ -110,14 +119,13 @@ public enum EventAction {
             if let customAction = customAction, !customAction.isEmpty {
                 self = .custom(customAction)
             } else {
-                return nil // Invalid custom action without a String
+                return nil  // Invalid custom action without a String
             }
         default:
-            return nil // Invalid raw value
+            return nil  // Invalid raw value
         }
     }
 }
-
 
 public struct AdRevenueConfig {
     public let source: String
@@ -130,7 +138,6 @@ public struct AdRevenueConfig {
         self.currency = currency
     }
 }
-
 
 public struct PurchaseVerificationConfig {
     public let transactionId: String

@@ -12,8 +12,8 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
     private let baseAPIURL = "https://api.nkmhub.com/v1/ref/"
 
     public func initialize(
-        environment: Environment,
-        completion: @escaping (Result<Void, Error>) -> Void
+        environment: String,
+        completion: @escaping (Result<Void, any Error>) -> Void
     ) {
         Logger.logInfo("Initializing Tapp... Not implemented")
         completion(.success(()))
@@ -161,6 +161,68 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
             case .failure(let error):
                 Logger.logError(error)
                 completion(.failure(error))
+            }
+        }
+    }
+
+    public func getSecrets(
+        auth_token: String,
+        tapp_token: String,
+        bundle_id: String,
+        mmp: Affiliate,
+        completion: @escaping (Result<String, ReferralEngineError>) -> Void
+    ) {
+        let apiURL = "\(baseAPIURL)secrets"
+        let networkManager = NetworkManager()
+
+        let requestBody: [String: Any] = [
+            "tapp_token": tapp_token,
+            "bundle_id": bundle_id,
+            "mmp": mmp.intValue,
+        ]
+
+        let headers = [
+            "Authorization": "Bearer \(auth_token)",
+            "Content-Type": "application/json",
+        ]
+
+        // Log the request
+        Logger.logInfo(
+            "Sending GetSecrets request to \(apiURL) with parameters: \(requestBody)"
+        )
+
+        networkManager.postRequest(
+            url: apiURL, params: requestBody, headers: headers
+        ) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let jsonResponse):
+                    Logger.logInfo("Received response: \(jsonResponse)")
+                    if let error = jsonResponse["error"] as? Bool, !error,
+                        let secret = jsonResponse["secret"] as? String
+                    {
+                        completion(.success(secret))
+                    } else if let errorMessage = jsonResponse["message"]
+                        as? String
+                    {
+                        let apiError = ReferralEngineError.apiError(
+                            message: errorMessage,
+                            endpoint: apiURL
+                        )
+                        Logger.logError(apiError)
+                        completion(.failure(apiError))
+                    } else {
+                        let parsingError = ReferralEngineError.apiError(
+                            message: "Invalid response format",
+                            endpoint: apiURL
+                        )
+                        Logger.logError(parsingError)
+                        completion(.failure(parsingError))
+                    }
+                case .failure(let error):
+                    Logger.logError(error)
+                    completion(.failure(error))
+                }
             }
         }
     }
