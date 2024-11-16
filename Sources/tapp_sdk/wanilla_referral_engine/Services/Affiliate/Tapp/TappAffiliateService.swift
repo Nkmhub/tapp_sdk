@@ -117,10 +117,8 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
         bundle_id: String,
         event_name: String,
         event_action: EventAction,
-        event_custom_action: String? = nil,  // Default to nil if not provided
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
-            Void
-    ) {
+        event_custom_action: String? = nil)
+    {
         let apiURL = "\(baseAPIURL)event"
         let networkManager = NetworkManager()
 
@@ -144,23 +142,19 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
                 if let message = jsonResponse["message"] as? String {
                     Logger.logInfo(
                         "Handle tapp event tracked: Message: \(message)")
-                    completion(.success(jsonResponse))
                 } else if let errorMessage = jsonResponse["error"] as? String {
                     let apiError = ReferralEngineError.apiError(
                         message: errorMessage, endpoint: apiURL)
                     Logger.logError(apiError)
-                    completion(.failure(apiError))
                 } else {
                     let parsingError = ReferralEngineError.apiError(
                         message: "Invalid response format",
                         endpoint: apiURL
                     )
                     Logger.logError(parsingError)
-                    completion(.failure(parsingError))
                 }
             case .failure(let error):
                 Logger.logError(error)
-                completion(.failure(error))
             }
         }
     }

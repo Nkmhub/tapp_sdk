@@ -14,9 +14,8 @@ public protocol TappSpecificService {
         bundle_id: String,
         event_name: String,
         event_action: EventAction,
-        event_custom_action: String?,
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
-            Void)
+        event_custom_action: String?
+    )
     
     func getSecrets(
            auth_token: String,

@@ -22,7 +22,7 @@ public enum ReferralEngineError: Error {
     case apiError(message: String,endpoint: String)
     case networkError(message: String)
     case missingParameters(details: String? = nil) // Add details
-
+    case eventActionMissing
     // You can add more cases as needed
 }
 
@@ -50,7 +50,9 @@ extension ReferralEngineError: LocalizedError {
         case .networkError(let message):
             return "Network Error: \(message)"
         case .missingParameters(let details):
-                  return "Missing parameters: \(details ?? "No additional details")"
+            return "Missing parameters: \(details ?? "No additional details")"
+        case .eventActionMissing:
+            return "event_custom_action is required when event_action is -1"
         }
     }
 }

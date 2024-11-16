@@ -172,38 +172,19 @@ public class ReferralEngineSDK {
         )
     }
 
-    public func handleTappEvent(
-        config: TappEventConfig,
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
-            Void
-    ) {
+    public func handleTappEvent(config: TappEventConfig) {
         guard let authToken = KeychainCredentials.authToken,
             let tappToken = KeychainCredentials.tappToken,
             let bundleIdentifier = KeychainCredentials.bundleId
         else {
-            completion(
-                .failure(
-                    .missingParameters(
-                        details:
-                            "Missing required credentials or bundle identifier"
-                    )
-                )
-            )
+            Logger.logError(ReferralEngineError.missingParameters(details: "Missing required credentials or bundle identifier"))
             return
         }
 
-        // **Add the required check here**
         if config.event_action.rawValue == -1
             && config.event_custom_action == nil
         {
-            completion(
-                .failure(
-                    .missingParameters(
-                        details:
-                            "event_custom_action is required when event_action is -1"
-                    )
-                )
-            )
+            Logger.logError(ReferralEngineError.eventActionMissing)
             return
         }
 
@@ -214,8 +195,7 @@ public class ReferralEngineSDK {
             event_name: config.event_name,
             event_action: config.event_action,
             event_custom_action: config.event_action.rawValue == -1
-                ? config.event_custom_action : "false",
-            completion: completion
+                ? config.event_custom_action : "false"
         )
     }
 
