@@ -25,8 +25,5 @@ public protocol AffiliateService {
         jsonObject: [String: Any],
         completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
             Void)
-    func handleImpression(
-        url: String, authToken: String,
-        completion: @escaping (Result<[String: Any], Error>) -> Void)
 
 }

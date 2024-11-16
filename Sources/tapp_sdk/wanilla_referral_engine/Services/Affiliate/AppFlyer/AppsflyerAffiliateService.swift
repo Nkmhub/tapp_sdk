@@ -65,19 +65,4 @@ public class AppsflyerAffiliateService: AffiliateService {
                         "Affiliate URL method not implemented for Appsflyer.")))
     }
 
-    public func handleImpression(
-        url: String,
-        authToken: String,
-        completion: @escaping (Result<[String: Any], Error>) -> Void
-    ) {
-        Logger.logInfo(
-            "Handle impression is not implemented in Appsflyer. Use Tapp's method."
-        )
-        completion(
-            .failure(
-                ReferralEngineError.unknownError(
-                    details:
-                        "Impression handling not supported in AppsflyerAffiliateService."
-                )))
-    }
 }

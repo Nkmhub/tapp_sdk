@@ -33,7 +33,7 @@ public class ReferralEngineSDK {
         KeychainCredentials.bundleId = bundleIdentifier
 
         self.tappSpecificService = tappService
-        
+
         tappService.getSecrets(
             auth_token: config.authToken,
             tapp_token: config.tappToken,
@@ -43,14 +43,11 @@ public class ReferralEngineSDK {
             switch result {
             case .success(let secret):
                 KeychainCredentials.appToken = secret
-                print("secret: \(secret)")
-                print("affiliate service: \(config.affiliate)")
                 switch config.affiliate {
                 case .adjust:
                     let adjustService = AdjustAffiliateService(appToken: secret)
                     self.affiliateService = adjustService
                     self.adjustSpecificService = adjustService
-                    print("Adjust service initialized: \(config.affiliate)")
                 case .tapp:
                     self.affiliateService = TappAffiliateService()
                 case .appsflyer:
@@ -70,7 +67,6 @@ public class ReferralEngineSDK {
         config: ReferralEngineConfig,
         completion: @escaping (Result<Void, ReferralEngineError>) -> Void
     ) {
-        print("Processing referral engine...")
         guard let service = affiliateService else {
             completion(
                 .failure(
@@ -133,8 +129,22 @@ public class ReferralEngineSDK {
         }
 
         service.handleCallback(with: urlString)
-        //TODO:: replace the service with the tapp service
-        service.handleImpression(url: urlString, authToken: authToken) {
+
+        guard let tappToken = KeychainCredentials.tappToken,
+            let bundleIdentifier = KeychainCredentials.bundleId
+        else {
+            Logger.logError(
+                ReferralEngineError.missingParameters(
+                    details: "Missing required credentials."))
+            return
+        }
+
+        tappSpecificService?.handleImpression(
+            url: urlString,
+            authToken: authToken,
+            tapp_token: tappToken,
+            bundle_id: bundleIdentifier
+        ) {
             [weak self] result in
             switch result {
             case .success:
@@ -154,20 +164,7 @@ public class ReferralEngineSDK {
 
     // MARK: - Handle Event
     public func handleEvent(config: EventConfig) {
-        let service: AffiliateService
-
-        // Initialize the service based on the affiliate
-        switch config.affiliate {
-        case .adjust:
-            service = AdjustAffiliateService(
-                appToken: KeychainCredentials.appToken ?? "")
-        case .tapp:
-            service = TappAffiliateService()
-        case .appsflyer:
-            service = AppsflyerAffiliateService()
-        }
-
-        service.handleEvent(
+        affiliateService?.handleEvent(
             eventId: config.eventToken, authToken: KeychainCredentials.authToken
         )
     }
@@ -177,7 +174,9 @@ public class ReferralEngineSDK {
             let tappToken = KeychainCredentials.tappToken,
             let bundleIdentifier = KeychainCredentials.bundleId
         else {
-            Logger.logError(ReferralEngineError.missingParameters(details: "Missing required credentials or bundle identifier"))
+            Logger.logError(
+                ReferralEngineError.missingParameters(
+                    details: "Missing required credentials."))
             return
         }
 
@@ -216,7 +215,7 @@ public class ReferralEngineSDK {
                 .failure(
                     .missingParameters(
                         details:
-                            "Missing required credentials or bundle identifier")
+                            "Missing required credentials")
                 ))
             return
         }

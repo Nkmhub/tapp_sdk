@@ -24,4 +24,11 @@ public protocol TappSpecificService {
            mmp:Affiliate,
            completion: @escaping (Result<String, ReferralEngineError>) -> Void
        )
+    
+    func handleImpression(
+        url: String,
+        authToken: String,
+        tapp_token: String,
+        bundle_id: String,
+        completion: @escaping (Result<[String: Any], Error>) -> Void)
 }

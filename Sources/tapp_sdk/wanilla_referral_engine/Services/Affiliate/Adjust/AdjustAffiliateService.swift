@@ -89,20 +89,6 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
             ))
     }
 
-    public func handleImpression(
-        url: String,
-        authToken: String,
-        completion: @escaping (Result<[String: Any], Error>) -> Void
-    ) {
-        Logger.logInfo(
-            "Handle impression is not implemented. Use Tapp's method.")
-        completion(
-            .failure(
-                ReferralEngineError.unknownError(
-                    details:
-                        "Impression handling not supported in AdjustAffiliateService."
-                )))
-    }
 
     // MARK: - Attribution
     public func getAttribution(completion: @escaping (ADJAttribution?) -> Void)

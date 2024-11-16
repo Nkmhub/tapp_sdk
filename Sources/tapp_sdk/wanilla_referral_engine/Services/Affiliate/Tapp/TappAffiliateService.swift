@@ -9,7 +9,21 @@ import Foundation
 
 public class TappAffiliateService: AffiliateService, TappSpecificService {
 
-    private let baseAPIURL = "https://api.nkmhub.com/v1/ref/"
+    private var baseAPIURL = "https://api.nkmhub.com/v1/ref/"
+//    private var baseAPIURL: String {
+//        guard let environment = KeychainCredentials.environment else {
+//            return "https://api.nkmhub.com/sandbox/ref"
+//        }
+//
+//        switch environment {
+//        case "production":
+//            return "https://api.nkmhub.com/v1/ref/"
+//        case "sandbox":
+//            return "https://api.nkmhub.com/sandbox/ref"
+//        default:
+//            return "https://api.nkmhub.com/sandbox/ref"
+//        }
+//    }
 
     public func initialize(
         environment: String,
@@ -70,12 +84,16 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
     public func handleImpression(
         url: String,
         authToken: String,
+        tapp_token: String,
+        bundle_id: String,
         completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
-        let apiURL = "\(baseAPIURL)checkStatus"
+        let apiURL = "\(baseAPIURL)deeplink"
 
         let requestBody: [String: Any] = [
-            "url": url
+            "tapp_token":tapp_token,
+            "bundle_id":bundle_id,
+            "deeplink": url
         ]
 
         let headers = [
@@ -89,11 +107,11 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
         ) { result in
             switch result {
             case .success(let jsonResponse):
-                if let status = jsonResponse["status"] as? Int,
+                if  let error = jsonResponse["error"] as? Bool, !error,
                     let message = jsonResponse["message"] as? String
                 {
                     Logger.logInfo(
-                        "Handle impression success: Status \(status), Message: \(message)"
+                        "Handle impression success:Message: \(message)"
                     )
                     completion(.success(jsonResponse))
                 } else {
@@ -117,8 +135,8 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
         bundle_id: String,
         event_name: String,
         event_action: Int,
-        event_custom_action: String? = nil)
-    {
+        event_custom_action: String? = nil
+    ) {
         let apiURL = "\(baseAPIURL)event"
         let networkManager = NetworkManager()
 
@@ -195,7 +213,8 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
                     if let error = jsonResponse["error"] as? Bool, !error,
                         let secret = jsonResponse["secret"] as? String
                     {
-                        Logger.logInfo("inside the success case, secret: \(secret)")
+                        Logger.logInfo(
+                            "inside the success case, secret: \(secret)")
                         completion(.success(secret))
                     } else if let errorMessage = jsonResponse["message"]
                         as? String
