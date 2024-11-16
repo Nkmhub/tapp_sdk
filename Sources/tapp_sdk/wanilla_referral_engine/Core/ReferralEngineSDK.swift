@@ -4,7 +4,7 @@ import Foundation
 public class ReferralEngineSDK {
     private var affiliateService: AffiliateService?
     internal var adjustSpecificService: AdjustSpecificService?
-    private var tappSpecificService: TappSpecificService?
+    internal var tappSpecificService: TappSpecificService?
 
     public init() {}
 
