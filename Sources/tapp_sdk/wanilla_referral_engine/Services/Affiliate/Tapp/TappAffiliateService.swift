@@ -201,6 +201,7 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
                     if let error = jsonResponse["error"] as? Bool, !error,
                         let secret = jsonResponse["secret"] as? String
                     {
+                        Logger.logInfo("inside the success case, secret: \(secret)")
                         completion(.success(secret))
                     } else if let errorMessage = jsonResponse["message"]
                         as? String

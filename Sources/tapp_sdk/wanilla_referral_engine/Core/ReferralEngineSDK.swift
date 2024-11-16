@@ -13,6 +13,8 @@ public class ReferralEngineSDK {
         config: ReferralEngineInitConfig,
         completion: @escaping (Result<Void, ReferralEngineError>) -> Void
     ) {
+        let tappService = TappAffiliateService()
+
         // Save parameters to KeychainCredentials
         KeychainCredentials.authToken = config.authToken
         KeychainCredentials.environment = config.env.rawValue
@@ -30,7 +32,6 @@ public class ReferralEngineSDK {
 
         KeychainCredentials.bundleId = bundleIdentifier
 
-        let tappService = TappAffiliateService()
         self.tappSpecificService = tappService
         
         tappService.getSecrets(
@@ -40,19 +41,22 @@ public class ReferralEngineSDK {
             mmp: config.affiliate
         ) { result in
             switch result {
-            case .success(let secret):  // Here, secret is your appToken
-                KeychainCredentials.appToken = secret  // Store the appToken
-                // Now proceed to initialize the affiliate service with the retrieved appToken
+            case .success(let secret):
+                KeychainCredentials.appToken = secret
+                print("secret: \(secret)")
+                print("affiliate service: \(config.affiliate)")
                 switch config.affiliate {
                 case .adjust:
                     let adjustService = AdjustAffiliateService(appToken: secret)
                     self.affiliateService = adjustService
                     self.adjustSpecificService = adjustService
+                    print("Adjust service initialized: \(config.affiliate)")
                 case .tapp:
                     self.affiliateService = TappAffiliateService()
                 case .appsflyer:
                     self.affiliateService = AppsflyerAffiliateService()
                 }
+                completion(.success(()))
             case .failure(let error):
                 // Handle error
                 Logger.logError(error)
@@ -66,7 +70,7 @@ public class ReferralEngineSDK {
         config: ReferralEngineConfig,
         completion: @escaping (Result<Void, ReferralEngineError>) -> Void
     ) {
-
+        print("Processing referral engine...")
         guard let service = affiliateService else {
             completion(
                 .failure(

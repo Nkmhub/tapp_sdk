@@ -8,7 +8,6 @@
 import Foundation
 
 public struct ReferralEngineInitConfig {
-    public let url: String?
     public let authToken: String
     public let env: Environment
     public let tappToken: String
@@ -21,7 +20,6 @@ public struct ReferralEngineInitConfig {
         tappToken: String,
         affiliate: Affiliate
     ) {
-        self.url = url
         self.authToken = authToken
         self.env = env
         self.tappToken = tappToken
