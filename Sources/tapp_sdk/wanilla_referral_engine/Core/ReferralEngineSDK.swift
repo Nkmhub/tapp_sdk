@@ -193,7 +193,7 @@ public class ReferralEngineSDK {
             tapp_token: tappToken,
             bundle_id: bundleIdentifier,
             event_name: config.event_name,
-            event_action: config.event_action,
+            event_action: config.event_action.rawValue,
             event_custom_action: config.event_action.rawValue == -1
                 ? config.event_custom_action : "false"
         )

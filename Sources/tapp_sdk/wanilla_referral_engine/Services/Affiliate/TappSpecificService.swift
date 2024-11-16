@@ -13,7 +13,7 @@ public protocol TappSpecificService {
         tapp_token: String,
         bundle_id: String,
         event_name: String,
-        event_action: EventAction,
+        event_action: Int,
         event_custom_action: String?
     )
     

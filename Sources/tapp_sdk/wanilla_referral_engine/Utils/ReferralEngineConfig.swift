@@ -107,22 +107,6 @@ public enum EventAction {
         case .custom: return -1
         }
     }
-
-    public init?(rawValue: Int, customAction: String? = nil) {
-        switch rawValue {
-        case 1: self = .click
-        case 2: self = .impression
-        case 3: self = .count
-        case -1:
-            if let customAction = customAction, !customAction.isEmpty {
-                self = .custom(customAction)
-            } else {
-                return nil  // Invalid custom action without a String
-            }
-        default:
-            return nil  // Invalid raw value
-        }
-    }
 }
 
 public struct AdRevenueConfig {
