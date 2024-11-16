@@ -7,11 +7,14 @@
 
 import Foundation
 
-public class TappAffiliateService: AffiliateService {
-    
-    private let baseAPIURL = "https://www.nkmhub.com/api/wre/"
-    
-    public func initialize(environment: Environment, completion: @escaping (Result<Void, Error>) -> Void) {
+public class TappAffiliateService: AffiliateService, TappSpecificService {
+
+    private let baseAPIURL = "https://api.nkmhub.com/v1/ref/"
+
+    public func initialize(
+        environment: Environment,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
         Logger.logInfo("Initializing Tapp... Not implemented")
         completion(.success(()))
     }
@@ -19,35 +22,7 @@ public class TappAffiliateService: AffiliateService {
     public func handleCallback(with url: String) {
         Logger.logInfo("Handling Tapp callback with URL: \(url)")
     }
-    
-    public func handleEvent(eventId: String, authToken: String?) {
-        guard let authToken = authToken, !authToken.isEmpty else {
-            Logger.logError(ReferralEngineError.missingAuthToken)
-            return
-        }
-        
-        Logger.logInfo("Handling Tapp callback for events with ID: \(eventId)")
-        
-        let apiURL = "\(baseAPIURL)event"
-        let requestBody: [String: Any] = [
-            "event_name": eventId,
-        ]
-        
-        let headers = [
-            "Authorization": "Bearer \(authToken)"
-        ]
-        
-        let networkManager = NetworkManager()
-        networkManager.postRequest(url: apiURL, params: requestBody, headers: headers) { result in
-            switch result {
-            case .success(let jsonResponse):
-                Logger.logInfo("Event tracked successfully: \(jsonResponse)")
-            case .failure(let error):
-                Logger.logError(error)
-            }
-        }
-    }
-    
+
     public func affiliateUrl(
         tapp_token: String,
         bundle_id: String,
@@ -57,10 +32,11 @@ public class TappAffiliateService: AffiliateService {
         influencer: String,
         authToken: String,
         jsonObject: [String: Any],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
+            Void
     ) {
-        let apiURL = "\(baseAPIURL)generateUrl"
-        
+        let apiURL = "\(baseAPIURL)influencer/add"
+
         let requestBody: [String: Any] = [
             "tapp_token": tapp_token,
             "bundle_id": bundle_id,
@@ -68,18 +44,21 @@ public class TappAffiliateService: AffiliateService {
             "adgroup": adgroup,
             "creative": creative,
             "influencer": influencer,
-            "data": jsonObject
+            "data": jsonObject,
         ]
-        
+
         let headers = [
             "Authorization": "Bearer \(authToken)"
         ]
-        
+
         let networkManager = NetworkManager()
-        networkManager.postRequest(url: apiURL, params: requestBody, headers: headers) { result in
+        networkManager.postRequest(
+            url: apiURL, params: requestBody, headers: headers
+        ) { result in
             switch result {
             case .success(let jsonResponse):
-                Logger.logInfo("Affiliate URL generated successfully: \(jsonResponse)")
+                Logger.logInfo(
+                    "Affiliate URL generated successfully: \(jsonResponse)")
                 completion(.success(jsonResponse))
             case .failure(let error):
                 Logger.logError(error)
@@ -87,30 +66,35 @@ public class TappAffiliateService: AffiliateService {
             }
         }
     }
-    
+
     public func handleImpression(
         url: String,
         authToken: String,
         completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
         let apiURL = "\(baseAPIURL)checkStatus"
-        
+
         let requestBody: [String: Any] = [
             "url": url
         ]
-        
+
         let headers = [
             "Authorization": "Bearer \(authToken)"
         ]
-        
+
         let networkManager = NetworkManager()
-        
-        networkManager.postRequest(url: apiURL, params: requestBody, headers: headers) { result in
+
+        networkManager.postRequest(
+            url: apiURL, params: requestBody, headers: headers
+        ) { result in
             switch result {
             case .success(let jsonResponse):
                 if let status = jsonResponse["status"] as? Int,
-                   let message = jsonResponse["message"] as? String {
-                    Logger.logInfo("Handle impression success: Status \(status), Message: \(message)")
+                    let message = jsonResponse["message"] as? String
+                {
+                    Logger.logInfo(
+                        "Handle impression success: Status \(status), Message: \(message)"
+                    )
                     completion(.success(jsonResponse))
                 } else {
                     let parsingError = ReferralEngineError.apiError(
@@ -126,4 +110,63 @@ public class TappAffiliateService: AffiliateService {
             }
         }
     }
+
+    public func handleTappEvent(
+        auth_token authToken: String,
+        tapp_token: String,
+        bundle_id: String,
+        event_name: String,
+        event_action: EventAction,
+        event_custom_action: String? = nil,  // Default to nil if not provided
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
+            Void
+    ) {
+        let apiURL = "\(baseAPIURL)event"
+        let networkManager = NetworkManager()
+
+        let requestBody: [String: Any] = [
+            "tapp_token": tapp_token,
+            "bundle_id": bundle_id,
+            "event_name": event_name,
+            "event_action": event_action,
+            "event_custom_action": event_custom_action ?? "false",
+        ]
+
+        let headers = [
+            "Authorization": "Bearer \(authToken)"
+        ]
+
+        networkManager.postRequest(
+            url: apiURL, params: requestBody, headers: headers
+        ) { result in
+            switch result {
+            case .success(let jsonResponse):
+                if let message = jsonResponse["message"] as? String {
+                    Logger.logInfo(
+                        "Handle tapp event tracked: Message: \(message)")
+                    completion(.success(jsonResponse))
+                } else if let errorMessage = jsonResponse["error"] as? String {
+                    let apiError = ReferralEngineError.apiError(
+                        message: errorMessage, endpoint: apiURL)
+                    Logger.logError(apiError)
+                    completion(.failure(apiError))
+                } else {
+                    let parsingError = ReferralEngineError.apiError(
+                        message: "Invalid response format",
+                        endpoint: apiURL
+                    )
+                    Logger.logError(parsingError)
+                    completion(.failure(parsingError))
+                }
+            case .failure(let error):
+                Logger.logError(error)
+                completion(.failure(error))
+            }
+        }
+    }
+
+    public func handleEvent(eventId: String, authToken: String?) {
+        Logger.logInfo("Use the handleTappEvent method to handle Tapp events")
+    }
+
 }

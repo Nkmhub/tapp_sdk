@@ -62,6 +62,63 @@ public struct EventConfig {
     }
 }
 
+public struct TappEventConfig {
+    public let event_name: String
+    public let event_action: EventAction
+    public let event_custom_action: String? // Optional since it only applies to custom actions
+    
+    public init(
+        event_name: String,
+        event_action: EventAction,
+        event_custom_action: String? = nil
+    ) {
+        self.event_name = event_name
+        self.event_action = event_action
+        self.event_custom_action = event_custom_action
+    }
+    
+    // Validate if event_action is .custom and event_custom_action is provided
+    public func isValid() -> Bool {
+        if case .custom = event_action {
+            return event_custom_action != nil && !event_custom_action!.isEmpty
+        }
+        return true
+    }
+}
+
+public enum EventAction {
+    case click
+    case impression
+    case count
+    case custom(String) // Associate a String value for custom actions
+    
+    public var rawValue: Int {
+        switch self {
+        case .click: return 1
+        case .impression: return 2
+        case .count: return 3
+        case .custom: return -1
+        }
+    }
+    
+    public init?(rawValue: Int, customAction: String? = nil) {
+        switch rawValue {
+        case 1: self = .click
+        case 2: self = .impression
+        case 3: self = .count
+        case -1:
+            if let customAction = customAction, !customAction.isEmpty {
+                self = .custom(customAction)
+            } else {
+                return nil // Invalid custom action without a String
+            }
+        default:
+            return nil // Invalid raw value
+        }
+    }
+}
+
+
 public struct AdRevenueConfig {
     public let source: String
     public let revenue: Double
