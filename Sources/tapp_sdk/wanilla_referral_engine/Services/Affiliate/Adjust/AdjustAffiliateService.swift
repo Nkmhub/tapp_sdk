@@ -26,8 +26,8 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
             return
         }
 
-        let adjustConfig = ADJConfig(
-            appToken: appToken, environment: environment.adjustEnvironment)
+        let adjustConfig = ADJConfig(appToken: appToken,
+                                     environment: environment.adjustEnvironment)
         Adjust.initSdk(adjustConfig)
 
         isInitialized = true

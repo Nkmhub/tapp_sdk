@@ -17,7 +17,6 @@ public final class ReferralEngineInitConfig: Codable {
     private(set) var hasProcessedReferralEngine: Bool = false
 
     public init(
-        url: String?,
         authToken: String,
         env: Environment,
         tappToken: String,
@@ -36,16 +35,6 @@ public final class ReferralEngineInitConfig: Codable {
 
     public func set(hasProcessedReferralEngine: Bool) {
         self.hasProcessedReferralEngine = hasProcessedReferralEngine
-    }
-}
-
-public struct ReferralEngineConfig {
-    public let url: String?
-
-    public init(
-        url: String?
-    ) {
-        self.url = url
     }
 }
 
