@@ -67,13 +67,21 @@ public class ReferralEngineSDK {
         single.appWillOpen(url)
     }
 
-    private func appWillOpen(_ url: URL) {
+    private func appWillOpen(_ url: URL) { //Add completion for developer
         guard let config = KeychainHelper.shared.config else { return }
-        secrets(config: config) { result in
+        secrets(config: config) { [weak self] result in
+            guard let self else { return }
             switch result {
             case .success:
-                break
-            case .failure:
+                self.processReferralEngine(url: url) { processResult in
+                    switch processResult {
+                    case .success:
+                        break
+                    case .failure(let error):
+                        break
+                    }
+                }
+            case .failure(let error):
                 break
             }
         }
