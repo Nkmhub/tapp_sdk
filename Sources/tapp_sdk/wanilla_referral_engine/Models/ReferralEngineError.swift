@@ -15,7 +15,7 @@ public enum ReferralEngineError: Error {
     case missingAuthToken
     case missingTappToken
     case invalidURL
-    case initializationFailed(affiliate: String, underlyingError: Error?)
+    case initializationFailed(affiliate: Affiliate, underlyingError: Error?)
     case alreadyProcessed
     case affiliateServiceError(affiliate: Affiliate, underlyingError: Error)
     case unknownError(details:String?)
@@ -23,6 +23,7 @@ public enum ReferralEngineError: Error {
     case networkError(message: String)
     case missingParameters(details: String? = nil) // Add details
     case eventActionMissing
+    case missingConfiguration
     // You can add more cases as needed
 }
 
@@ -53,6 +54,8 @@ extension ReferralEngineError: LocalizedError {
             return "Missing parameters: \(details ?? "No additional details")"
         case .eventActionMissing:
             return "event_custom_action is required when event_action is -1"
+        case .missingConfiguration:
+            return "missing configuration"
         }
     }
 }

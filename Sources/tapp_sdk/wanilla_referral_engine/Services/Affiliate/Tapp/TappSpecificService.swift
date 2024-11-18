@@ -9,18 +9,18 @@ import Foundation
 
 public protocol TappSpecificService {
     func handleTappEvent(
-        auth_token: String,
-        tapp_token: String,
-        bundle_id: String,
-        event_name: String,
-        event_action: Int,
-        event_custom_action: String?
+        authToken: String,
+        tappToken: String,
+        bundleID: String,
+        eventName: String,
+        eventAction: Int,
+        eventCustomAction: String?
     )
     
     func getSecrets(
-           auth_token: String,
-           tapp_token: String,
-           bundle_id: String,
+           authToken: String,
+           tappToken: String,
+           bundleID: String,
            mmp:Affiliate,
            completion: @escaping (Result<String, ReferralEngineError>) -> Void
        )
@@ -28,7 +28,7 @@ public protocol TappSpecificService {
     func handleImpression(
         url: String,
         authToken: String,
-        tapp_token: String,
-        bundle_id: String,
+        tappToken: String,
+        bundleID: String,
         completion: @escaping (Result<[String: Any], Error>) -> Void)
 }

@@ -26,7 +26,7 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
 //    }
 
     public func initialize(
-        environment: String,
+        environment: Environment,
         completion: @escaping (Result<Void, any Error>) -> Void
     ) {
         Logger.logInfo("Initializing Tapp... Not implemented")
@@ -37,23 +37,21 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
         Logger.logInfo("Handling Tapp callback with URL: \(url)")
     }
 
-    public func affiliateUrl(
-        tapp_token: String,
-        bundle_id: String,
-        mmp: Int,
-        adgroup: String,
-        creative: String,
-        influencer: String,
-        authToken: String,
-        jsonObject: [String: Any],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
-            Void
+    public func affiliateUrl(tappToken: String,
+                             bundleID: String,
+                             mmp: Int,
+                             adgroup: String,
+                             creative: String,
+                             influencer: String,
+                             authToken: String,
+                             jsonObject: [String: Any],
+                             completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
     ) {
         let apiURL = "\(baseAPIURL)influencer/add"
 
         let requestBody: [String: Any] = [
-            "tapp_token": tapp_token,
-            "bundle_id": bundle_id,
+            "tapp_token": tappToken,
+            "bundle_id": bundleID,
             "mmp": mmp,
             "adgroup": adgroup,
             "creative": creative,
@@ -84,15 +82,15 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
     public func handleImpression(
         url: String,
         authToken: String,
-        tapp_token: String,
-        bundle_id: String,
+        tappToken: String,
+        bundleID: String,
         completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
         let apiURL = "\(baseAPIURL)deeplink"
 
         let requestBody: [String: Any] = [
-            "tapp_token":tapp_token,
-            "bundle_id":bundle_id,
+            "tapp_token":tappToken,
+            "bundle_id":bundleID,
             "deeplink": url
         ]
 
@@ -129,23 +127,21 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
         }
     }
 
-    public func handleTappEvent(
-        auth_token authToken: String,
-        tapp_token: String,
-        bundle_id: String,
-        event_name: String,
-        event_action: Int,
-        event_custom_action: String? = nil
-    ) {
+    public func handleTappEvent(authToken: String,
+                                tappToken: String,
+                                bundleID: String,
+                                eventName: String,
+                                eventAction: Int,
+                                eventCustomAction: String? = nil) {
         let apiURL = "\(baseAPIURL)event"
         let networkManager = NetworkManager()
 
         let requestBody: [String: Any] = [
-            "tapp_token": tapp_token,
-            "bundle_id": bundle_id,
-            "event_name": event_name,
-            "event_action": event_action,
-            "event_custom_action": event_custom_action ?? "false",
+            "tapp_token": tappToken,
+            "bundle_id": bundleID,
+            "event_name": eventName,
+            "event_action": eventAction,
+            "event_custom_action": eventCustomAction ?? "false",
         ]
 
         let headers = [
@@ -178,9 +174,9 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
     }
 
     public func getSecrets(
-        auth_token: String,
-        tapp_token: String,
-        bundle_id: String,
+        authToken: String,
+        tappToken: String,
+        bundleID: String,
         mmp: Affiliate,
         completion: @escaping (Result<String, ReferralEngineError>) -> Void
     ) {
@@ -188,13 +184,13 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
         let networkManager = NetworkManager()
 
         let requestBody: [String: Any] = [
-            "tapp_token": tapp_token,
-            "bundle_id": bundle_id,
+            "tapp_token": tappToken,
+            "bundle_id": bundleID,
             "mmp": mmp.intValue,
         ]
 
         let headers = [
-            "Authorization": "Bearer \(auth_token)",
+            "Authorization": "Bearer \(authToken)",
             "Content-Type": "application/json",
         ]
 

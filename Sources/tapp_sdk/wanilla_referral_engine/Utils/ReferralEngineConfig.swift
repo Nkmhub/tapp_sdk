@@ -7,11 +7,14 @@
 
 import Foundation
 
-public struct ReferralEngineInitConfig {
+public final class ReferralEngineInitConfig: Codable {
     public let authToken: String
     public let env: Environment
     public let tappToken: String
     public let affiliate: Affiliate
+    public let bundleID: String?
+    private(set) var appToken: String?
+    private(set) var hasProcessedReferralEngine: Bool = false
 
     public init(
         url: String?,
@@ -24,6 +27,15 @@ public struct ReferralEngineInitConfig {
         self.env = env
         self.tappToken = tappToken
         self.affiliate = affiliate
+        self.bundleID = Bundle.main.bundleIdentifier
+    }
+
+    public func set(appToken: String) {
+        self.appToken = appToken
+    }
+
+    public func set(hasProcessedReferralEngine: Bool) {
+        self.hasProcessedReferralEngine = hasProcessedReferralEngine
     }
 }
 
@@ -70,24 +82,24 @@ public struct EventConfig {
 }
 
 public struct TappEventConfig {
-    public let event_name: String
-    public let event_action: EventAction
-    public let event_custom_action: String?  // Optional since it only applies to custom actions
+    public let eventName: String
+    public let eventAction: EventAction
+    public let eventCustomAction: String?  // Optional since it only applies to custom actions
 
     public init(
-        event_name: String,
-        event_action: EventAction,
-        event_custom_action: String? = nil
+        eventName: String,
+        eventAction: EventAction,
+        eventCustomAction: String? = nil
     ) {
-        self.event_name = event_name
-        self.event_action = event_action
-        self.event_custom_action = event_custom_action
+        self.eventName = eventName
+        self.eventAction = eventAction
+        self.eventCustomAction = eventCustomAction
     }
 
     // Validate if event_action is .custom and event_custom_action is provided
     public func isValid() -> Bool {
-        if case .custom = event_action {
-            return event_custom_action != nil && !event_custom_action!.isEmpty
+        if case .custom = eventAction {
+            return eventCustomAction != nil && !eventCustomAction!.isEmpty
         }
         return true
     }
@@ -105,6 +117,15 @@ public enum EventAction {
         case .impression: return 2
         case .count: return 3
         case .custom: return -1
+        }
+    }
+
+    var isCustom: Bool {
+        switch self {
+        case .click, .impression, .count:
+            return false
+        case .custom:
+            return true
         }
     }
 }
