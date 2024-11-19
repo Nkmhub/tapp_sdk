@@ -146,8 +146,6 @@ public class ReferralEngineSDK {
             return
         }
 
-        service.handleCallback(with: url.absoluteString)
-
         guard let storedConfig = KeychainHelper.shared.config, let bundleID = storedConfig.bundleID else {
             Logger.logError(
                 ReferralEngineError.missingParameters(
@@ -164,6 +162,7 @@ public class ReferralEngineSDK {
             [weak self] result in
             switch result {
             case .success:
+                service.handleCallback(with: url.absoluteString)
                 Logger.logInfo(
                     "Referral engine impression handled successfully.")
                 self?.setProcessedReferralEngine()

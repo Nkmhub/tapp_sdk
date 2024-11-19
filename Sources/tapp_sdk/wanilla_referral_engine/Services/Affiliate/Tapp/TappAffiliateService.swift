@@ -10,20 +10,20 @@ import Foundation
 public class TappAffiliateService: AffiliateService, TappSpecificService {
 
     private var baseAPIURL = "https://api.nkmhub.com/v1/ref/"
-//    private var baseAPIURL: String {
-//        guard let environment = KeychainCredentials.environment else {
-//            return "https://api.nkmhub.com/sandbox/ref"
-//        }
-//
-//        switch environment {
-//        case "production":
-//            return "https://api.nkmhub.com/v1/ref/"
-//        case "sandbox":
-//            return "https://api.nkmhub.com/sandbox/ref"
-//        default:
-//            return "https://api.nkmhub.com/sandbox/ref"
-//        }
-//    }
+    //    private var baseAPIURL: String {
+    //        guard let environment = KeychainCredentials.environment else {
+    //            return "https://api.nkmhub.com/sandbox/ref"
+    //        }
+    //
+    //        switch environment {
+    //        case "production":
+    //            return "https://api.nkmhub.com/v1/ref/"
+    //        case "sandbox":
+    //            return "https://api.nkmhub.com/sandbox/ref"
+    //        default:
+    //            return "https://api.nkmhub.com/sandbox/ref"
+    //        }
+    //    }
 
     public func initialize(
         environment: Environment,
@@ -37,15 +37,17 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
         Logger.logInfo("Handling Tapp callback with URL: \(url)")
     }
 
-    public func affiliateUrl(tappToken: String,
-                             bundleID: String,
-                             mmp: Int,
-                             adgroup: String,
-                             creative: String,
-                             influencer: String,
-                             authToken: String,
-                             jsonObject: [String: Any],
-                             completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+    public func affiliateUrl(
+        tappToken: String,
+        bundleID: String,
+        mmp: Int,
+        adgroup: String,
+        creative: String,
+        influencer: String,
+        authToken: String,
+        jsonObject: [String: Any],
+        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
+            Void
     ) {
         let apiURL = "\(baseAPIURL)influencer/add"
 
@@ -89,9 +91,9 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
         let apiURL = "\(baseAPIURL)deeplink"
 
         let requestBody: [String: Any] = [
-            "tapp_token":tappToken,
-            "bundle_id":bundleID,
-            "deeplink": url
+            "tapp_token": tappToken,
+            "bundle_id": bundleID,
+            "deeplink": url,
         ]
 
         let headers = [
@@ -105,13 +107,22 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
         ) { result in
             switch result {
             case .success(let jsonResponse):
-                if  let error = jsonResponse["error"] as? Bool, !error,
+                if let error = jsonResponse["error"] as? Bool, !error,
                     let message = jsonResponse["message"] as? String
                 {
                     Logger.logInfo(
                         "Handle impression success:Message: \(message)"
                     )
                     completion(.success(jsonResponse))
+                } else if let error = jsonResponse["error"] as? Bool, error,
+                    let message = jsonResponse["message"] as? String
+                {
+                    let parsingError = ReferralEngineError.apiError(
+                        message: message,
+                        endpoint: apiURL
+                    )
+                    Logger.logError(parsingError)
+                    completion(.failure(parsingError))
                 } else {
                     let parsingError = ReferralEngineError.apiError(
                         message: "Invalid response format",
@@ -127,12 +138,14 @@ public class TappAffiliateService: AffiliateService, TappSpecificService {
         }
     }
 
-    public func handleTappEvent(authToken: String,
-                                tappToken: String,
-                                bundleID: String,
-                                eventName: String,
-                                eventAction: Int,
-                                eventCustomAction: String? = nil) {
+    public func handleTappEvent(
+        authToken: String,
+        tappToken: String,
+        bundleID: String,
+        eventName: String,
+        eventAction: Int,
+        eventCustomAction: String? = nil
+    ) {
         let apiURL = "\(baseAPIURL)event"
         let networkManager = NetworkManager()
 
