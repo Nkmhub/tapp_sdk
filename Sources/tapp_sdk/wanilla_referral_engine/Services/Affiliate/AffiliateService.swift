@@ -9,21 +9,18 @@
 import Foundation
 
 public protocol AffiliateService {
-    func initialize(
-        environment: String,
-        completion: @escaping (Result<Void, Error>) -> Void)
+    func initialize(environment: Environment,
+                    completion: @escaping (Result<Void, Error>) -> Void)
+
     func handleCallback(with url: String)
     func handleEvent(eventId: String, authToken: String?)
-    func affiliateUrl(
-        tapp_token: String,
-        bundle_id: String,
-        mmp: Int,
-        adgroup: String,
-        creative: String,
-        influencer: String,
-        authToken: String,
-        jsonObject: [String: Any],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
-            Void)
-
+    func affiliateUrl(tappToken: String,
+                      bundleID: String,
+                      mmp: Int,
+                      adgroup: String,
+                      creative: String,
+                      influencer: String,
+                      authToken: String,
+                      jsonObject: [String: Any],
+                      completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void )
 }

@@ -1,48 +1,46 @@
 import AdjustSdk
 import Foundation
 
-public class ReferralEngineSDK {
-    private var affiliateService: AffiliateService?
-    internal var adjustSpecificService: AdjustSpecificService?
-    internal var tappSpecificService: TappSpecificService?
+public typealias ReferralEngineCompletion = (_ result: Result<Void, ReferralEngineError>) -> Void
 
-    public init() {}
+public class ReferralEngineSDK {
+    private static let single: ReferralEngineSDK = .init()
+
+    private var affiliateService: AffiliateService?
+    private var adjustSpecificService: AdjustSpecificService?
+    private let tappAffiliateService = TappAffiliateService()
+
+    private init() {}
+
+    internal var adjustService: AdjustSpecificService? {
+        return adjustSpecificService
+    }
 
     // MARK: - Configuration
-    public func configureAffiliateService(
-        config: ReferralEngineInitConfig,
-        completion: @escaping (Result<Void, ReferralEngineError>) -> Void
-    ) {
-        let tappService = TappAffiliateService()
+    // AppDelegate: Called upon didFinishLaunching
+    public static func start(config: ReferralEngineInitConfig) {
+        KeychainHelper.shared.save(config: config)
+    }
 
-        // Save parameters to KeychainCredentials
-        KeychainCredentials.authToken = config.authToken
-        KeychainCredentials.environment = config.env.rawValue
-        KeychainCredentials.tappToken = config.tappToken
-        KeychainCredentials.environment = config.env.rawValue
-        KeychainCredentials.mmp = String(config.affiliate.intValue)
+    private func secrets(config: ReferralEngineInitConfig, completion: ReferralEngineCompletion?) {
+        guard let bundleID = config.bundleID else {
+            completion?(.failure(.missingParameters(details: "Missing required bundle identifier")))
 
-        guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
-            completion(
-                .failure(
-                    .missingParameters(
-                        details: "Missing required bundle identifier")))
             return
         }
 
-        KeychainCredentials.bundleId = bundleIdentifier
-
-        self.tappSpecificService = tappService
-
-        tappService.getSecrets(
-            auth_token: config.authToken,
-            tapp_token: config.tappToken,
-            bundle_id: bundleIdentifier,
-            mmp: config.affiliate
-        ) { result in
+        tappAffiliateService.getSecrets(authToken: config.authToken,
+                               tappToken: config.tappToken,
+                               bundleID: bundleID,
+                               mmp: config.affiliate) { result in
+            guard let storedConfig = KeychainHelper.shared.config else {
+                completion?(Result.failure(ReferralEngineError.missingConfiguration))
+                return
+            }
             switch result {
             case .success(let secret):
-                KeychainCredentials.appToken = secret
+                storedConfig.set(appToken: secret)
+                KeychainHelper.shared.save(config: storedConfig)
                 switch config.affiliate {
                 case .adjust:
                     let adjustService = AdjustAffiliateService(appToken: secret)
@@ -53,33 +51,55 @@ public class ReferralEngineSDK {
                 case .appsflyer:
                     self.affiliateService = AppsflyerAffiliateService()
                 }
-                completion(.success(()))
+                completion?(.success(()))
             case .failure(let error):
                 // Handle error
                 Logger.logError(error)
-                completion(.failure(error))
+                completion?(.failure(error))
             }
         }
     }
 
     // MARK: - Process Referral Engine
-    public func processReferralEngine(
-        config: ReferralEngineConfig,
-        completion: @escaping (Result<Void, ReferralEngineError>) -> Void
-    ) {
+
+    //AppDelegate called when receiving a url
+    public static func appWillOpen(_ url: URL) {
+        single.appWillOpen(url)
+    }
+
+    private func appWillOpen(_ url: URL) { //Add completion for developer
+        guard let config = KeychainHelper.shared.config else { return }
+        secrets(config: config) { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success:
+                self.processReferralEngine(url: url) { processResult in
+                    switch processResult {
+                    case .success:
+                        break
+                    case .failure(let error):
+                        break
+                    }
+                }
+            case .failure(let error):
+                break
+            }
+        }
+    }
+
+    private func processReferralEngine(
+        url: URL,
+        completion: ReferralEngineCompletion? = nil) {
         guard let service = affiliateService else {
-            completion(
+            completion?(
                 .failure(
                     .missingParameters(
                         details: "Affiliate service not configured")))
             return
         }
 
-        guard let authToken = KeychainCredentials.authToken,
-            let env = KeychainCredentials.environment,
-            let mmp = KeychainCredentials.mmp
-        else {
-            completion(
+        guard let storedConfig = KeychainHelper.shared.config else {
+            completion?(
                 .failure(
                     .missingParameters(
                         details:
@@ -91,59 +111,55 @@ public class ReferralEngineSDK {
         }
 
         // Always initialize the affiliate service
-        service.initialize(environment: env) { [weak self] result in
+        service.initialize(environment: storedConfig.env) { [weak self] result in
             switch result {
             case .success:
                 // Only handle the referral callback if not already processed
                 if self?.hasProcessedReferralEngine() == true {
                     Logger.logError(ReferralEngineError.alreadyProcessed)
-                    completion(.failure(.alreadyProcessed))
+                    completion?(.failure(.alreadyProcessed))
                 } else {
                     self?.handleReferralCallback(
-                        url: config.url,
-                        authToken: authToken,
+                        url: url,
+                        authToken: storedConfig.authToken,
                         service: service,
                         completion: completion
                     )
                 }
             case .failure(let error):
-                completion(
+                completion?(
                     .failure(
                         .initializationFailed(
-                            affiliate: mmp, underlyingError: error)
+                            affiliate: storedConfig.affiliate, underlyingError: error)
                     ))
             }
         }
     }
 
-    private func handleReferralCallback(
-        url: String?,
-        authToken: String,
-        service: AffiliateService,
-        completion: @escaping (Result<Void, ReferralEngineError>) -> Void
-    ) {
-        guard let urlString = url, !urlString.isEmpty else {
+    private func handleReferralCallback(url: URL?,
+                                        authToken: String,
+                                        service: AffiliateService,
+                                        completion: ReferralEngineCompletion? = nil) {
+        guard let url, !url.absoluteString.isEmpty else {
             Logger.logError(ReferralEngineError.invalidURL)
-            completion(.failure(.invalidURL))
+            completion?(.failure(.invalidURL))
             return
         }
 
-        service.handleCallback(with: urlString)
+        service.handleCallback(with: url.absoluteString)
 
-        guard let tappToken = KeychainCredentials.tappToken,
-            let bundleIdentifier = KeychainCredentials.bundleId
-        else {
+        guard let storedConfig = KeychainHelper.shared.config, let bundleID = storedConfig.bundleID else {
             Logger.logError(
                 ReferralEngineError.missingParameters(
                     details: "Missing required credentials."))
             return
         }
 
-        tappSpecificService?.handleImpression(
-            url: urlString,
+        tappAffiliateService.handleImpression(
+            url: url.absoluteString,
             authToken: authToken,
-            tapp_token: tappToken,
-            bundle_id: bundleIdentifier
+            tappToken: storedConfig.tappToken,
+            bundleID: bundleID
         ) {
             [weak self] result in
             switch result {
@@ -151,66 +167,55 @@ public class ReferralEngineSDK {
                 Logger.logInfo(
                     "Referral engine impression handled successfully.")
                 self?.setProcessedReferralEngine()
-                completion(.success(()))
+                completion?(.success(()))
             case .failure(let error):
                 Logger.logError(error)
-                completion(
-                    .failure(
-                        .affiliateServiceError(
-                            affiliate: .tapp, underlyingError: error)))
+                completion?(Result.failure(.affiliateServiceError(affiliate: .tapp, underlyingError: error)))
             }
         }
     }
 
     // MARK: - Handle Event
+    //For MMP Specific events
     public func handleEvent(config: EventConfig) {
+        guard let storedConfig = KeychainHelper.shared.config else { return }
         affiliateService?.handleEvent(
-            eventId: config.eventToken, authToken: KeychainCredentials.authToken
+            eventId: config.eventToken, authToken: storedConfig.authToken
         )
     }
 
+    //For Tapp Events
     public func handleTappEvent(config: TappEventConfig) {
-        guard let authToken = KeychainCredentials.authToken,
-            let tappToken = KeychainCredentials.tappToken,
-            let bundleIdentifier = KeychainCredentials.bundleId
-        else {
+        guard let storedConfig = KeychainHelper.shared.config, let bundleID = storedConfig.bundleID else {
             Logger.logError(
                 ReferralEngineError.missingParameters(
                     details: "Missing required credentials."))
             return
         }
 
-        if config.event_action.rawValue == -1
-            && config.event_custom_action == nil
+        if config.eventAction.isCustom && config.eventCustomAction == nil
         {
             Logger.logError(ReferralEngineError.eventActionMissing)
             return
         }
 
-        tappSpecificService?.handleTappEvent(
-            auth_token: authToken,
-            tapp_token: tappToken,
-            bundle_id: bundleIdentifier,
-            event_name: config.event_name,
-            event_action: config.event_action.rawValue,
-            event_custom_action: config.event_action.rawValue == -1
-                ? config.event_custom_action : "false"
+        tappAffiliateService.handleTappEvent(
+            authToken: storedConfig.authToken,
+            tappToken: storedConfig.tappToken,
+            bundleID: bundleID,
+            eventName: config.eventName,
+            eventAction: config.eventAction.rawValue,
+            eventCustomAction: config.eventAction.rawValue == -1 ? config.eventCustomAction : "false"
         )
     }
 
     // MARK: - Generate Affiliate URL
-    public func generateAffiliateUrl(
-        config: AffiliateUrlConfig,
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
-            Void
-    ) {
+    //Called when the UI needs to generate a new url
+    public func generateAffiliateUrl(config: AffiliateUrlConfig,
+                                     completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void) {
         let service: AffiliateService = TappAffiliateService()
 
-        // Proceed with generating the affiliate URL
-        guard let authToken = KeychainCredentials.authToken,
-            let tappToken = KeychainCredentials.tappToken,
-            let bundleIdentifier = KeychainCredentials.bundleId
-        else {
+        guard let storedConfig = KeychainHelper.shared.config, let bundleID = storedConfig.bundleID else {
             completion(
                 .failure(
                     .missingParameters(
@@ -222,13 +227,13 @@ public class ReferralEngineSDK {
 
         // Use 'service' to call affiliateUrl
         service.affiliateUrl(
-            tapp_token: tappToken,
-            bundle_id: bundleIdentifier,
+            tappToken: storedConfig.tappToken,
+            bundleID: bundleID,
             mmp: config.mmp.intValue,
             adgroup: config.adgroup,
             creative: config.creative,
             influencer: config.influencer,
-            authToken: authToken,
+            authToken: storedConfig.authToken,
             jsonObject: config.jsonObject,
             completion: completion
         )
@@ -236,10 +241,12 @@ public class ReferralEngineSDK {
 
     // MARK: - Referral Engine State Management
     private func setProcessedReferralEngine() {
-        KeychainCredentials.hasProcessedReferralEngine = true
+        guard let storedConfig = KeychainHelper.shared.config else { return }
+        storedConfig.set(hasProcessedReferralEngine: true)
+        KeychainHelper.shared.save(config: storedConfig)
     }
 
     private func hasProcessedReferralEngine() -> Bool {
-        return KeychainCredentials.hasProcessedReferralEngine
+        return KeychainHelper.shared.config?.hasProcessedReferralEngine ?? false
     }
 }

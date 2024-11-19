@@ -13,7 +13,7 @@ import Foundation
 public class AppsflyerAffiliateService: AffiliateService {
 
     public func initialize(
-        environment: String,
+        environment: Environment,
         completion: @escaping (Result<Void, any Error>) -> Void
     ) {
         Logger.logInfo("Initializing Appsflyer...")
@@ -44,8 +44,8 @@ public class AppsflyerAffiliateService: AffiliateService {
     }
 
     public func affiliateUrl(
-        tapp_token: String,
-        bundle_id: String,
+        tappToken: String,
+        bundleID: String,
         mmp: Int,
         adgroup: String,
         creative: String,

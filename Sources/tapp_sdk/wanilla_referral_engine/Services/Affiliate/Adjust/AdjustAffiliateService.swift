@@ -1,10 +1,10 @@
-import AdjustSdk  // Adjust SDK import
 //
 //  AdjustAffiliateService.swift
 //
 //  Created by Nikolaos Tseperkas on 28/9/24.
 //
 import Foundation
+import AdjustSdk
 
 public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
 
@@ -17,7 +17,7 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
     }
 
     public func initialize(
-        environment: String,
+        environment: Environment,
         completion: @escaping (Result<Void, any Error>) -> Void
     ) {
         guard !isInitialized else {
@@ -26,11 +26,8 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
             return
         }
 
-        let adjustEnvironment =
-            environment == "production"
-            ? ADJEnvironmentProduction : ADJEnvironmentSandbox
-        let adjustConfig = ADJConfig(
-            appToken: appToken, environment: adjustEnvironment)
+        let adjustConfig = ADJConfig(appToken: appToken,
+                                     environment: environment.adjustEnvironment)
         Adjust.initSdk(adjustConfig)
 
         isInitialized = true
@@ -69,8 +66,8 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
     }
 
     public func affiliateUrl(
-        tapp_token: String,
-        bundle_id: String,
+        tappToken: String,
+        bundleID: String,
         mmp: Int,
         adgroup: String,
         creative: String,
@@ -200,5 +197,16 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
     ) {
         Logger.logInfo("Unique method on Adjust service executed.")
         completion(.success(["status": "Test method executed"]))
+    }
+}
+
+private extension Environment {
+    var adjustEnvironment: String {
+        switch self {
+        case .sandbox:
+            return ADJEnvironmentProduction
+        case .production:
+            return ADJEnvironmentSandbox
+        }
     }
 }

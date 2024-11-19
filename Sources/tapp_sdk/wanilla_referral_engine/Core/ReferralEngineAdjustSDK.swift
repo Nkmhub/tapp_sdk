@@ -10,46 +10,42 @@ extension ReferralEngineSDK {
 
     // MARK: - Adjust Specific Features
 
-    public func getAdjustAttribution(
-        completion: @escaping (ADJAttribution?) -> Void
-    ) {
-        adjustSpecificService?.getAttribution(completion: completion)
+    public func getAdjustAttribution(completion: @escaping (ADJAttribution?) -> Void) {
+        adjustService?.getAttribution(completion: completion)
     }
 
     public func adjustGdprForgetMe() {
-        adjustSpecificService?.gdprForgetMe()
+        adjustService?.gdprForgetMe()
     }
 
     public func adjustTrackThirdPartySharing(isEnabled: Bool) {
-        adjustSpecificService?.trackThirdPartySharing(isEnabled: isEnabled)
+        adjustService?.trackThirdPartySharing(isEnabled: isEnabled)
     }
 
-    public func adjustTrackAdRevenue(
-        source: String, revenue: Double, currency: String
-    ) {
-        adjustSpecificService?.trackAdRevenue(
+    public func adjustTrackAdRevenue(source: String,
+                                     revenue: Double,
+                                     currency: String) {
+        adjustService?.trackAdRevenue(
             source: source, revenue: revenue, currency: currency)
     }
 
-    public func adjustVerifyAppStorePurchase(
-        transactionId: String,
-        productId: String,
-        completion: @escaping (ADJPurchaseVerificationResult) -> Void
-    ) {
-        adjustSpecificService?.verifyAppStorePurchase(
-            transactionId: transactionId, productId: productId,
-            completion: completion)
+    public func adjustVerifyAppStorePurchase(transactionId: String,
+                                             productId: String,
+                                             completion: @escaping (ADJPurchaseVerificationResult) -> Void) {
+        adjustService?.verifyAppStorePurchase(transactionId: transactionId,
+                                                      productId: productId,
+                                                      completion: completion)
     }
 
     public func adjustSetPushToken(token: String) {
-        adjustSpecificService?.setPushToken(token)
+        adjustService?.setPushToken(token)
     }
 
     public func adjustGetAdid(completion: @escaping (String?) -> Void) {
-        adjustSpecificService?.getAdid(completion: completion)
+        adjustService?.getAdid(completion: completion)
     }
 
     public func adjustGetIdfa(completion: @escaping (String?) -> Void) {
-        adjustSpecificService?.getIdfa(completion: completion)
+        adjustService?.getIdfa(completion: completion)
     }
 }

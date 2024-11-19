@@ -8,7 +8,7 @@
 //  Affiliate.swift
 //  wanilla_referral_engine/Models
 
-public enum Affiliate: String {
+public enum Affiliate: String, Codable {
     case adjust
     case appsflyer
     case tapp
