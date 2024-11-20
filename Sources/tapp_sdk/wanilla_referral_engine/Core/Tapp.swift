@@ -1,8 +1,8 @@
 import AdjustSdk
 import Foundation
 
-public class ReferralEngineSDK {
-    private static let single: ReferralEngineSDK = .init()
+public class Tapp {
+    static let single: Tapp = .init()
     let dependencies: Dependencies = .live
 
     private init() {}
@@ -22,34 +22,33 @@ public class ReferralEngineSDK {
 
     // MARK: - Handle Event
     //For MMP Specific events
-    public func handleEvent(config: EventConfig) {
+    public static func handleEvent(config: EventConfig) {
         guard let storedConfig = KeychainHelper.shared.config else { return }
-        affiliateService?.handleEvent(eventId: config.eventToken,
-                                      authToken: storedConfig.authToken)
+        single.affiliateService?.handleEvent(eventId: config.eventToken,
+                                             authToken: storedConfig.authToken)
     }
 
     //For Tapp Events
-    public func handleTappEvent(event: TappEvent) {
+    public static func handleTappEvent(event: TappEvent) {
         guard event.eventAction.isValid else {
             Logger.logError(TappError.eventActionMissing)
             return
         }
 
-        dependencies.services.tappService.sendTappEvent(event: event, completion: nil)
+        single.dependencies.services.tappService.sendTappEvent(event: event, completion: nil)
     }
 
-    // MARK: - Generate Affiliate URL
     //Called when the UI needs to generate a new url
-    public func url(config: AffiliateURLConfiguration,
+    public static func url(config: AffiliateURLConfiguration,
                     completion: GenerateURLCompletion?) {
         let request = GenerateURLRequest(influencer: config.influencer, adGroup: config.adgroup, creative: config.creative, data: config.data)
 
-        dependencies.services.tappService.url(request: request, completion: completion)
+        single.dependencies.services.tappService.url(request: request, completion: completion)
     }
 }
 
 //MARK: - AppWillOpen + Processing
-private extension ReferralEngineSDK {
+private extension Tapp {
     private func handleReferralCallback(url: URL?,
                                         authToken: String,
                                         completion: VoidCompletion? = nil) {
@@ -165,7 +164,7 @@ private extension ReferralEngineSDK {
     }
 }
 
-private extension ReferralEngineSDK {
+private extension Tapp {
     var affiliateService: AffiliateServiceProtocol? {
         guard let config = dependencies.keychainHelper.config else { return nil }
 
