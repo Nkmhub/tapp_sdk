@@ -1,16 +1,16 @@
 //
-//  ReferralEngineError.swift
+//  TappError.swift
 //  test_app
 //
 //  Created by Nikolaos Tseperkas on 28/9/24.
 //
 
-//  ReferralEngineError.swift
+//  TappError.swift
 //  wanilla_referral_engine/Models
 
 import Foundation
 
-public enum ReferralEngineError: Error {
+public enum TappError: Error {
     case missingAppToken
     case missingAuthToken
     case missingTappToken
@@ -27,7 +27,7 @@ public enum ReferralEngineError: Error {
     // You can add more cases as needed
 }
 
-extension ReferralEngineError: LocalizedError {
+extension TappError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .missingAppToken:
