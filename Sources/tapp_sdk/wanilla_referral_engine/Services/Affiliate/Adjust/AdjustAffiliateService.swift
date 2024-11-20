@@ -6,14 +6,18 @@
 import Foundation
 import AdjustSdk
 
-public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
+
+public class AdjustAffiliateService: AdjustServiceProtocol {
 
     private var isInitialized = false
-    private let appToken: String  // Store the appToken
+    private let keychainHelper: KeychainHelperProtocol
+    private let networkClient: NetworkClientProtocol
 
     // Initialize with appToken
-    public init(appToken: String) {
-        self.appToken = appToken
+    init(keychainHelper: KeychainHelperProtocol,
+         networkClient: NetworkClientProtocol) {
+        self.keychainHelper = keychainHelper
+        self.networkClient = networkClient
     }
 
     public func initialize(
@@ -26,7 +30,12 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
             return
         }
 
-        let adjustConfig = ADJConfig(appToken: appToken,
+        guard let token = keychainHelper.config?.appToken else {
+            completion(Result.failure(AffiliateServiceError.missingToken))
+            return
+        }
+
+        let adjustConfig = ADJConfig(appToken: token,
                                      environment: environment.adjustEnvironment)
         Adjust.initSdk(adjustConfig)
 
@@ -37,7 +46,7 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
 
     public func handleCallback(with url: String) {
         guard let incomingURL = URL(string: url) else {
-            Logger.logError(ReferralEngineError.invalidURL)
+            Logger.logError(TappError.invalidURL)
             return
         }
 
@@ -48,7 +57,7 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
     public func handleEvent(eventId: String, authToken: String?) {
         guard !eventId.isEmpty else {
             Logger.logError(
-                ReferralEngineError.missingParameters(
+                TappError.missingParameters(
                     details: "Event ID is empty."))
             return
         }
@@ -58,34 +67,12 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
             Logger.logInfo("Tracked event on Adjust: \(event.description)")
         } else {
             Logger.logError(
-                ReferralEngineError.apiError(
+                TappError.apiError(
                     message:
                         "Could not create ADJEvent with eventId \(eventId).",
                     endpoint: ""))
         }
     }
-
-    public func affiliateUrl(
-        tappToken: String,
-        bundleID: String,
-        mmp: Int,
-        adgroup: String,
-        creative: String,
-        influencer: String,
-        authToken: String,
-        jsonObject: [String: Any],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
-            Void
-    ) {
-        Logger.logInfo(
-            "Handling Adjust callback for custom URL... Not implemented yet.")
-        completion(
-            .failure(
-                .unknownError(
-                    details: "Affiliate URL method not implemented for Adjust.")
-            ))
-    }
-
 
     // MARK: - Attribution
     public func getAttribution(completion: @escaping (ADJAttribution?) -> Void)
@@ -95,7 +82,7 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
                 Logger.logInfo("Attribution: \(attribution)")
             } else {
                 Logger.logError(
-                    ReferralEngineError.unknownError(
+                    TappError.unknownError(
                         details: "No attribution available."))
             }
             completion(attribution)
@@ -114,7 +101,7 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
                 isEnabled: NSNumber(value: isEnabled))
         else {
             Logger.logError(
-                ReferralEngineError.unknownError(
+                TappError.unknownError(
                     details: "Failed to create ADJThirdPartySharing object."))
             return
         }
@@ -132,7 +119,7 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
             Logger.logInfo("Tracked ad revenue for \(source).")
         } else {
             Logger.logError(
-                ReferralEngineError.unknownError(
+                TappError.unknownError(
                     details:
                         "Failed to create ADJAdRevenue object for source: \(source)."
                 ))
@@ -153,7 +140,7 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
             }
         } else {
             Logger.logError(
-                ReferralEngineError.unknownError(
+                TappError.unknownError(
                     details: "Failed to create ADJAppStorePurchase object."))
             completion(ADJPurchaseVerificationResult())  // Pass an empty result
         }
@@ -172,7 +159,7 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
                 Logger.logInfo("ADID: \(adid)")
             } else {
                 Logger.logError(
-                    ReferralEngineError.unknownError(
+                    TappError.unknownError(
                         details: "No ADID available."))
             }
             completion(adid)
@@ -185,7 +172,7 @@ public class AdjustAffiliateService: AffiliateService, AdjustSpecificService {
                 Logger.logInfo("IDFA: \(idfa)")
             } else {
                 Logger.logError(
-                    ReferralEngineError.unknownError(
+                    TappError.unknownError(
                         details: "No IDFA available."))
             }
             completion(idfa)

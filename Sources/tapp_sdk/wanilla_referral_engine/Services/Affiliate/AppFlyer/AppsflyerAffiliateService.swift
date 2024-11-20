@@ -10,7 +10,14 @@
 
 import Foundation
 
-public class AppsflyerAffiliateService: AffiliateService {
+protocol AppsFlyerAffiliateServiceProtocol: AffiliateServiceProtocol {}
+
+final class AppsflyerAffiliateService: AppsFlyerAffiliateServiceProtocol {
+
+    let networkClient: NetworkClientProtocol
+    init(networkClient: NetworkClientProtocol) {
+        self.networkClient = networkClient
+    }
 
     public func initialize(
         environment: Environment,
@@ -23,7 +30,7 @@ public class AppsflyerAffiliateService: AffiliateService {
 
     public func handleCallback(with url: String) {
         guard let validURL = URL(string: url) else {
-            Logger.logError(ReferralEngineError.invalidURL)
+            Logger.logError(TappError.invalidURL)
             return
         }
 
@@ -34,7 +41,7 @@ public class AppsflyerAffiliateService: AffiliateService {
     public func handleEvent(eventId: String, authToken: String?) {
         guard !eventId.isEmpty else {
             Logger.logError(
-                ReferralEngineError.missingParameters(
+                TappError.missingParameters(
                     details: "Event ID is empty."))
             return
         }
@@ -42,27 +49,4 @@ public class AppsflyerAffiliateService: AffiliateService {
         Logger.logInfo("Handling Appsflyer event with ID: \(eventId)")
         // Appsflyer-specific event handling logic here
     }
-
-    public func affiliateUrl(
-        tappToken: String,
-        bundleID: String,
-        mmp: Int,
-        adgroup: String,
-        creative: String,
-        influencer: String,
-        authToken: String,
-        jsonObject: [String: Any],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) ->
-            Void
-    ) {
-        Logger.logInfo(
-            "Handling Appsflyer affiliate URL generation... Not implemented yet."
-        )
-        completion(
-            .failure(
-                .unknownError(
-                    details:
-                        "Affiliate URL method not implemented for Appsflyer.")))
-    }
-
 }

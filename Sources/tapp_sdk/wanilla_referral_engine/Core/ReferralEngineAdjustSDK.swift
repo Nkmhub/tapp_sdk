@@ -11,41 +11,41 @@ extension ReferralEngineSDK {
     // MARK: - Adjust Specific Features
 
     public func getAdjustAttribution(completion: @escaping (ADJAttribution?) -> Void) {
-        adjustService?.getAttribution(completion: completion)
+        dependencies.services.adjustService.getAttribution(completion: completion)
     }
 
     public func adjustGdprForgetMe() {
-        adjustService?.gdprForgetMe()
+        dependencies.services.adjustService.gdprForgetMe()
     }
 
     public func adjustTrackThirdPartySharing(isEnabled: Bool) {
-        adjustService?.trackThirdPartySharing(isEnabled: isEnabled)
+        dependencies.services.adjustService.trackThirdPartySharing(isEnabled: isEnabled)
     }
 
     public func adjustTrackAdRevenue(source: String,
                                      revenue: Double,
                                      currency: String) {
-        adjustService?.trackAdRevenue(
+        dependencies.services.adjustService.trackAdRevenue(
             source: source, revenue: revenue, currency: currency)
     }
 
     public func adjustVerifyAppStorePurchase(transactionId: String,
                                              productId: String,
                                              completion: @escaping (ADJPurchaseVerificationResult) -> Void) {
-        adjustService?.verifyAppStorePurchase(transactionId: transactionId,
+        dependencies.services.adjustService.verifyAppStorePurchase(transactionId: transactionId,
                                                       productId: productId,
                                                       completion: completion)
     }
 
     public func adjustSetPushToken(token: String) {
-        adjustService?.setPushToken(token)
+        dependencies.services.adjustService.setPushToken(token)
     }
 
     public func adjustGetAdid(completion: @escaping (String?) -> Void) {
-        adjustService?.getAdid(completion: completion)
+        dependencies.services.adjustService.getAdid(completion: completion)
     }
 
     public func adjustGetIdfa(completion: @escaping (String?) -> Void) {
-        adjustService?.getIdfa(completion: completion)
+        dependencies.services.adjustService.getIdfa(completion: completion)
     }
 }

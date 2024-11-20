@@ -8,7 +8,12 @@
 import Foundation
 import Security
 
-class KeychainHelper {
+protocol KeychainHelperProtocol {
+    func save(config: ReferralEngineInitConfig)
+    var config: ReferralEngineInitConfig? { get }
+}
+
+final class KeychainHelper: KeychainHelperProtocol {
     enum StorageError: Error {
         case noValue
     }

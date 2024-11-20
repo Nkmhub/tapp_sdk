@@ -19,7 +19,7 @@ public class NetworkManager {
         url: String,
         params: [String: Any],
         headers: [String: String] = [:],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+        completion: @escaping (Result<[String: Any], TappError>) -> Void
     ) {
         performRequest(url: url, method: "POST", params: params, headers: headers, completion: completion)
     }
@@ -28,7 +28,7 @@ public class NetworkManager {
     public func getRequest(
         url: String,
         headers: [String: String] = [:],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+        completion: @escaping (Result<[String: Any], TappError>) -> Void
     ) {
         performRequest(url: url, method: "GET", params: nil, headers: headers, completion: completion)
     }
@@ -38,7 +38,7 @@ public class NetworkManager {
         url: String,
         params: [String: Any],
         headers: [String: String] = [:],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+        completion: @escaping (Result<[String: Any], TappError>) -> Void
     ) {
         performRequest(url: url, method: "PUT", params: params, headers: headers, completion: completion)
     }
@@ -47,7 +47,7 @@ public class NetworkManager {
     public func deleteRequest(
         url: String,
         headers: [String: String] = [:],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+        completion: @escaping (Result<[String: Any], TappError>) -> Void
     ) {
         performRequest(url: url, method: "DELETE", params: nil, headers: headers, completion: completion)
     }
@@ -58,7 +58,7 @@ public class NetworkManager {
         method: String,
         params: [String: Any]?,
         headers: [String: String],
-        completion: @escaping (Result<[String: Any], ReferralEngineError>) -> Void
+        completion: @escaping (Result<[String: Any], TappError>) -> Void
     ) {
         guard let url = URL(string: url) else {
             completion(.failure(.apiError(message:"Invalid API URL.", endpoint: "performRequest")))

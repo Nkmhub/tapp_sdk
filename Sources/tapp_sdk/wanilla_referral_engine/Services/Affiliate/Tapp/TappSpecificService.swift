@@ -7,28 +7,9 @@
 
 import Foundation
 
-public protocol TappSpecificService {
-    func handleTappEvent(
-        authToken: String,
-        tappToken: String,
-        bundleID: String,
-        eventName: String,
-        eventAction: Int,
-        eventCustomAction: String?
-    )
-    
-    func getSecrets(
-           authToken: String,
-           tappToken: String,
-           bundleID: String,
-           mmp:Affiliate,
-           completion: @escaping (Result<String, ReferralEngineError>) -> Void
-       )
-    
-    func handleImpression(
-        url: String,
-        authToken: String,
-        tappToken: String,
-        bundleID: String,
-        completion: @escaping (Result<[String: Any], Error>) -> Void)
+protocol TappServiceProtocol {
+    func url(request: GenerateURLRequest, completion: GenerateURLCompletion?)
+    func handleImpression(url: URL, completion: VoidCompletion?)
+    func sendTappEvent(event: TappEvent, completion: VoidCompletion?)
+    func secrets(affiliate: Affiliate, completion: SecretsCompletion?)
 }

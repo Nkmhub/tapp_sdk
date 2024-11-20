@@ -13,7 +13,7 @@ public enum Affiliate: String, Codable {
     case appsflyer
     case tapp
 
-    public var intValue: Int {
+    var intValue: Int {
         switch self {
         case .adjust:
             return 1

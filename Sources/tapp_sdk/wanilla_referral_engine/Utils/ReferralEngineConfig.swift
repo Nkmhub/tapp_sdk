@@ -38,25 +38,25 @@ public final class ReferralEngineInitConfig: Codable {
     }
 }
 
-public struct AffiliateUrlConfig {
+public struct AffiliateURLConfiguration {
     public let influencer: String
-    public let adgroup: String
-    public let creative: String
+    public let adgroup: String?
+    public let creative: String?
     public let mmp: Affiliate
-    public let jsonObject: [String: Any]
+    public let data: Data
 
     public init(
         influencer: String,
-        adgroup: String,
-        creative: String,
+        adgroup: String? = nil,
+        creative: String? = nil,
         mmp: Affiliate,
-        jsonObject: [String: Any]
+        data: Data
     ) {
         self.influencer = influencer
         self.adgroup = adgroup
         self.creative = creative
         self.mmp = mmp
-        self.jsonObject = jsonObject
+        self.data = data
     }
 }
 
@@ -70,42 +70,22 @@ public struct EventConfig {
     }
 }
 
-public struct TappEventConfig {
-    public let eventName: String
-    public let eventAction: EventAction
-    public let eventCustomAction: String?  // Optional since it only applies to custom actions
-
-    public init(
-        eventName: String,
-        eventAction: EventAction,
-        eventCustomAction: String? = nil
-    ) {
-        self.eventName = eventName
-        self.eventAction = eventAction
-        self.eventCustomAction = eventCustomAction
-    }
-
-    // Validate if event_action is .custom and event_custom_action is provided
-    public func isValid() -> Bool {
-        if case .custom = eventAction {
-            return eventCustomAction != nil && !eventCustomAction!.isEmpty
-        }
-        return true
-    }
-}
-
 public enum EventAction {
     case click
     case impression
     case count
-    case custom(String)  // Associate a String value for custom actions
+    case custom(String)
 
     public var rawValue: Int {
         switch self {
-        case .click: return 1
-        case .impression: return 2
-        case .count: return 3
-        case .custom: return -1
+        case .click:
+            return 1
+        case .impression:
+            return 2
+        case .count:
+            return 3
+        case .custom:
+            return -1
         }
     }
 
@@ -115,6 +95,25 @@ public enum EventAction {
             return false
         case .custom:
             return true
+        }
+    }
+
+    var isValid: Bool {
+        switch self {
+        case .click, .impression, .count:
+            return true
+        case .custom(let value):
+            return !value.isEmpty
+        }
+    }
+
+    var eventCustomAction: String {
+        let defaultValue: String = "false"
+        switch self {
+        case .click, .impression, .count:
+            return defaultValue
+        case .custom(let value):
+            return value.isEmpty ? defaultValue : value
         }
     }
 }
