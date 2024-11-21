@@ -12,12 +12,33 @@ public class Tapp {
     // AppDelegate: Called upon didFinishLaunching
     public static func start(config: ReferralEngineInitConfig) {
         KeychainHelper.shared.save(config: config)
+
+        single.fetchSecretsAndInitializeReferralEngineIfNeeded(completion: nil)
     }
     // MARK: - Process Referral Engine
 
     //AppDelegate called when receiving a url
     public static func appWillOpen(_ url: URL, completion: VoidCompletion?) {
-        single.appWillOpen(url, completion: completion)
+        guard let config = KeychainHelper.shared.config else {
+            completion?(Result.failure(TappError.missingConfiguration))
+            return
+        }
+
+        single.appWillOpen(url, authToken: config.authToken, completion: completion)
+    }
+
+    public static func url(config: AffiliateURLConfiguration,
+                    completion: GenerateURLCompletion?) {
+        single.fetchSecretsAndInitializeReferralEngineIfNeeded { result in
+            switch result {
+            case .success:
+                let request = GenerateURLRequest(influencer: config.influencer, adGroup: config.adgroup, creative: config.creative, data: config.data)
+
+                single.dependencies.services.tappService.url(request: request, completion: completion)
+            case .failure(let error):
+                completion?(Result.failure(error))
+            }
+        }
     }
 
     // MARK: - Handle Event
@@ -37,26 +58,13 @@ public class Tapp {
 
         single.dependencies.services.tappService.sendTappEvent(event: event, completion: nil)
     }
-
-    //Called when the UI needs to generate a new url
-    public static func url(config: AffiliateURLConfiguration,
-                    completion: GenerateURLCompletion?) {
-        let request = GenerateURLRequest(influencer: config.influencer, adGroup: config.adgroup, creative: config.creative, data: config.data)
-
-        single.dependencies.services.tappService.url(request: request, completion: completion)
-    }
 }
 
 //MARK: - AppWillOpen + Processing
 private extension Tapp {
-    private func handleReferralCallback(url: URL?,
+    private func handleReferralCallback(url: URL,
                                         authToken: String,
                                         completion: VoidCompletion? = nil) {
-        guard let url, !url.absoluteString.isEmpty else {
-            Logger.logError(TappError.invalidURL)
-            completion?(Result.failure(TappError.invalidURL))
-            return
-        }
 
         dependencies.services.tappService.handleImpression(url: url) { [weak self] result in
             guard let self else { return }
@@ -71,12 +79,17 @@ private extension Tapp {
     }
     
     private func secrets(config: ReferralEngineInitConfig, completion: VoidCompletion?) {
-        dependencies.services.tappService.secrets(affiliate: config.affiliate) { result in
-            guard let storedConfig = KeychainHelper.shared.config else {
-                completion?(Result.failure(TappError.missingConfiguration))
-                return
-            }
+        guard let storedConfig = KeychainHelper.shared.config else {
+            completion?(Result.failure(TappError.missingConfiguration))
+            return
+        }
 
+        guard storedConfig.appToken == nil else {
+            completion?(Result.success(()))
+            return
+        }
+
+        dependencies.services.tappService.secrets(affiliate: config.affiliate) { [unowned config] result in
             switch result {
             case .success(let response):
                 storedConfig.set(appToken: response.secret)
@@ -89,29 +102,35 @@ private extension Tapp {
     }
 
 
-    private func appWillOpen(_ url: URL, completion: VoidCompletion?) { //Add completion for developer
-        guard let config = KeychainHelper.shared.config else { return }
+    private func appWillOpen(_ url: URL, authToken: String, completion: VoidCompletion?) {
+        fetchSecretsAndInitializeReferralEngineIfNeeded { [weak self] result in
+            switch result {
+            case .success:
+                self?.handleReferralCallback(url: url, authToken: authToken, completion: completion)
+            case .failure(let error):
+                completion?(Result.failure(error))
+            }
+        }
+    }
+
+    private func fetchSecretsAndInitializeReferralEngineIfNeeded(completion: VoidCompletion?) {
+        guard let config = KeychainHelper.shared.config else {
+            completion?(Result.failure(TappError.missingConfiguration))
+            return
+        }
+
         secrets(config: config) { [weak self] result in
             guard let self else { return }
             switch result {
             case .success:
-                self.processReferralEngine(url: url) { processResult in
-                    switch processResult {
-                    case .success:
-                        completion?(Result.success(()))
-                    case .failure(let error):
-                        completion?(self.affiliateErrorResult(error: error, affiliate: config.affiliate))
-                    }
-                }
+                self.initializeAffiliateService(completion: completion)
             case .failure(let error):
                 completion?(self.affiliateErrorResult(error: error, affiliate: config.affiliate))
             }
         }
     }
 
-    private func processReferralEngine(
-        url: URL,
-        completion: VoidCompletion? = nil) {
+    private func initializeAffiliateService(completion: VoidCompletion?) {
         guard let service = affiliateService else {
             completion?(Result.failure(TappError.missingParameters(details: "Affiliate service not configured")))
             return
@@ -123,29 +142,8 @@ private extension Tapp {
             return
         }
 
-        // Always initialize the affiliate service
-        service.initialize(environment: storedConfig.env) { [weak self] result in
-            switch result {
-            case .success:
-                // Only handle the referral callback if not already processed
-                if self?.hasProcessedReferralEngine() == true {
-                    Logger.logError(TappError.alreadyProcessed)
-                    completion?(.failure(TappError.alreadyProcessed))
-                } else {
-                    self?.handleReferralCallback(
-                        url: url,
-                        authToken: storedConfig.authToken,
-                        completion: completion
-                    )
-                }
-            case .failure(let error):
-                completion?(
-                    .failure(
-                        TappError.initializationFailed(
-                            affiliate: storedConfig.affiliate, underlyingError: error)
-                    ))
-            }
-        }
+
+        service.initialize(environment: storedConfig.env, completion: completion)
     }
 
     // MARK: - Referral Engine State Management

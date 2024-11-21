@@ -21,11 +21,10 @@ final class AppsflyerAffiliateService: AppsFlyerAffiliateServiceProtocol {
 
     public func initialize(
         environment: Environment,
-        completion: @escaping (Result<Void, any Error>) -> Void
-    ) {
+        completion: VoidCompletion?) {
         Logger.logInfo("Initializing Appsflyer...")
         // Appsflyer-specific initialization logic here
-        completion(.success(()))
+        completion?(.success(()))
     }
 
     public func handleCallback(with url: String) {
