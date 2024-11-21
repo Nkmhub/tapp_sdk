@@ -23,28 +23,11 @@ final class TappAffiliateService: TappAffiliateServiceProtocol {
         self.networkClient = networkClient
     }
 
-//    private var baseAPIURL = "https://api.nkmhub.com/v1/ref/"
-    //    private var baseAPIURL: String {
-    //        guard let environment = KeychainCredentials.environment else {
-    //            return "https://api.nkmhub.com/sandbox/ref"
-    //        }
-    //
-    //        switch environment {
-    //        case "production":
-    //            return "https://api.nkmhub.com/v1/ref/"
-    //        case "sandbox":
-    //            return "https://api.nkmhub.com/sandbox/ref"
-    //        default:
-    //            return "https://api.nkmhub.com/sandbox/ref"
-    //        }
-    //    }
-
     public func initialize(
         environment: Environment,
-        completion: @escaping (Result<Void, any Error>) -> Void
-    ) {
+        completion: VoidCompletion?) {
         Logger.logInfo("Initializing Tapp... Not implemented")
-        completion(.success(()))
+        completion?(.success(()))
     }
 
     public func handleCallback(with url: String) {

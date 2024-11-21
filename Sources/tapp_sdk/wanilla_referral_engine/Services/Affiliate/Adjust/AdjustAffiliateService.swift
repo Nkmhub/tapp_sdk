@@ -22,16 +22,15 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
 
     public func initialize(
         environment: Environment,
-        completion: @escaping (Result<Void, any Error>) -> Void
-    ) {
+        completion: VoidCompletion?) {
         guard !isInitialized else {
             Logger.logInfo("Adjust is already initialized.")
-            completion(.success(()))
+            completion?(.success(()))
             return
         }
 
         guard let token = keychainHelper.config?.appToken else {
-            completion(Result.failure(AffiliateServiceError.missingToken))
+            completion?(Result.failure(AffiliateServiceError.missingToken))
             return
         }
 
@@ -41,7 +40,7 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
 
         isInitialized = true
         Logger.logInfo("Adjust initialized successfully.")
-        completion(.success(()))
+        completion?(.success(()))
     }
 
     public func handleCallback(with url: String) {

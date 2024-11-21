@@ -14,7 +14,7 @@ enum AffiliateServiceError: Error {
 
 public protocol AffiliateServiceProtocol {
     func initialize(environment: Environment,
-                    completion: @escaping (Result<Void, Error>) -> Void)
+                    completion: VoidCompletion?)
 
     func handleCallback(with url: String)
     func handleEvent(eventId: String, authToken: String?)
