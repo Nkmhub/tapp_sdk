@@ -63,6 +63,10 @@ struct CreateAffiliateURLRequest: Codable {
 
 public struct GeneratedURLResponse: Codable {
     public let url: URL
+
+    enum CodingKeys: String, CodingKey {
+        case url = "influencer_url"
+    }
 }
 
 struct ImpressionRequest: Codable {
