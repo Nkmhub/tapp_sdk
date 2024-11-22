@@ -4,6 +4,9 @@ import Foundation
 public class Tapp {
     static let single: Tapp = .init()
     let dependencies: Dependencies = .live
+    private var isFetchingSecrets = false
+    private var secretsFetchCompletionHandlers: [VoidCompletion] = []
+    private let synchronizationQueue = DispatchQueue(label: "com.tapp.secretsFetchQueue")
 
     private init() {}
 
@@ -79,27 +82,32 @@ private extension Tapp {
     }
     
     private func secrets(config: ReferralEngineInitConfig, completion: VoidCompletion?) {
-        guard let storedConfig = KeychainHelper.shared.config else {
-            completion?(Result.failure(TappError.missingConfiguration))
-            return
-        }
+        synchronizationQueue.async {
+            guard let storedConfig = KeychainHelper.shared.config else {
+                completion?(Result.failure(TappError.missingConfiguration))
+                return
+            }
 
-        guard storedConfig.appToken == nil else {
-            completion?(Result.success(()))
-            return
-        }
-
-        dependencies.services.tappService.secrets(affiliate: config.affiliate) { [unowned config] result in
-            switch result {
-            case .success(let response):
-                storedConfig.set(appToken: response.secret)
-                KeychainHelper.shared.save(config: storedConfig)
+            if storedConfig.appToken != nil {
+                // Secrets are already fetched
                 completion?(.success(()))
-            case .failure(let error):
-                completion?(self.affiliateErrorResult(error: error, affiliate: config.affiliate))
+                return
+            }
+
+            // Fetch secrets from the service
+            self.dependencies.services.tappService.secrets(affiliate: config.affiliate) { [unowned config] result in
+                switch result {
+                case .success(let response):
+                    storedConfig.set(appToken: response.secret)
+                    KeychainHelper.shared.save(config: storedConfig)
+                    completion?(.success(()))
+                case .failure(let error):
+                    completion?(Result.failure(error))
+                }
             }
         }
     }
+
 
 
     private func appWillOpen(_ url: URL, authToken: String, completion: VoidCompletion?) {
@@ -113,19 +121,68 @@ private extension Tapp {
         }
     }
 
-    private func fetchSecretsAndInitializeReferralEngineIfNeeded(completion: VoidCompletion?) {
-        guard let config = KeychainHelper.shared.config else {
-            completion?(Result.failure(TappError.missingConfiguration))
-            return
-        }
 
-        secrets(config: config) { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success:
-                self.initializeAffiliateService(completion: completion)
-            case .failure(let error):
-                completion?(self.affiliateErrorResult(error: error, affiliate: config.affiliate))
+    private func fetchSecretsAndInitializeReferralEngineIfNeeded(completion: VoidCompletion?) {
+        synchronizationQueue.async {
+            // Check if secrets are already fetched
+            if let config = KeychainHelper.shared.config, config.appToken != nil {
+                // Secrets are already fetched, proceed to initialize affiliate service
+                DispatchQueue.main.async {
+                    self.initializeAffiliateService(completion: completion)
+                }
+                return
+            }
+
+            // If secrets are being fetched, add the completion handler to the queue and return
+            if self.isFetchingSecrets {
+                if let completion = completion {
+                    self.secretsFetchCompletionHandlers.append(completion)
+                }
+                return
+            }
+
+            // Start fetching secrets
+            self.isFetchingSecrets = true
+
+            // Add the current completion handler to the queue
+            if let completion = completion {
+                self.secretsFetchCompletionHandlers.append(completion)
+            }
+
+            // Proceed to fetch secrets
+            guard let config = KeychainHelper.shared.config else {
+                self.completeSecretsFetch(with: .failure(TappError.missingConfiguration))
+                return
+            }
+
+            self.secrets(config: config) { result in
+                switch result {
+                case .success:
+                    self.initializeAffiliateService { initResult in
+                        self.completeSecretsFetch(with: initResult)
+                    }
+                case .failure(let error):
+                    let affiliateErrorResult = self.affiliateErrorResult(error: error, affiliate: config.affiliate)
+                    self.completeSecretsFetch(with: affiliateErrorResult)
+                }
+            }
+        }
+    }
+    
+    private func completeSecretsFetch(with result: Result<Void, Error>) {
+        synchronizationQueue.async {
+            // Reset the fetching flag
+            self.isFetchingSecrets = false
+
+            // Capture the completion handlers and clear the array
+            let completionHandlers = self.secretsFetchCompletionHandlers
+            self.secretsFetchCompletionHandlers = []
+
+            // Call each completion handler
+            DispatchQueue.main.async {
+                for handler in completionHandlers {
+                    handler(result)
+                }
             }
         }
     }
