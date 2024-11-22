@@ -190,9 +190,9 @@ private extension Environment {
     var adjustEnvironment: String {
         switch self {
         case .sandbox:
-            return ADJEnvironmentProduction
-        case .production:
             return ADJEnvironmentSandbox
+        case .production:
+            return ADJEnvironmentProduction
         }
     }
 }
