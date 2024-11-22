@@ -45,7 +45,7 @@ final class TappAffiliateService: TappAffiliateServiceProtocol {
     private func url(uniqueID: String,
                      adGroup: String?,
                      creative: String?,
-                     data: Data,
+                     data: [String: String]?,
                      completion: GenerateURLCompletion?) {
         guard let config = keychainHelper.config, let bundleID = config.bundleID else { return }
         let createRequest = CreateAffiliateURLRequest(tappToken: config.tappToken,

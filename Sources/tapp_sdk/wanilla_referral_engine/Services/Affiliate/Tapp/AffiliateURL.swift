@@ -2,24 +2,13 @@
 //  CreateAffiliateURLRequest.swift
 //
 
-/**let requestBody: [String: Any] = [
- "tapp_token": tappToken,
- "bundle_id": bundleID,
- "mmp": mmp,
- "adgroup": adgroup,
- "creative": creative,
- "influencer": influencer,
- "data": jsonObject,
-]
-*/
-
 import Foundation
 
 public struct GenerateURLRequest: Codable {
     let influencer: String
     let adGroup: String?
     let creative: String?
-    let data: Data
+    let data: [String: String]?
 
     enum CodingKeys: String, CodingKey {
         case influencer
@@ -28,7 +17,7 @@ public struct GenerateURLRequest: Codable {
         case data
     }
 
-    public init(influencer: String, adGroup: String? = nil, creative: String? = nil, data: Data) {
+    public init(influencer: String, adGroup: String? = nil, creative: String? = nil, data: [String: String]?) {
         self.influencer = influencer
         self.adGroup = adGroup
         self.creative = creative
@@ -43,7 +32,7 @@ struct CreateAffiliateURLRequest: Codable {
     private let influencer: String
     private let adGroup: String?
     private let creative: String?
-    private let data: Data
+    private let data: [String: String]?
 
     enum CodingKeys: String, CodingKey {
         case tappToken = "tapp_token"
@@ -61,7 +50,7 @@ struct CreateAffiliateURLRequest: Codable {
          influencer: String,
          adGroup: String? = nil,
          creative: String? = nil,
-         data: Data) {
+         data: [String: String]?) {
         self.tappToken = tappToken
         self.bundleID = bundleID
         self.mmp = mmp
