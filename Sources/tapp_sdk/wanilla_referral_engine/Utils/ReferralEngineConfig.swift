@@ -43,14 +43,14 @@ public struct AffiliateURLConfiguration {
     public let adgroup: String?
     public let creative: String?
     public let mmp: Affiliate
-    public let data: Data
+    public let data: [String: String]?
 
     public init(
         influencer: String,
         adgroup: String? = nil,
         creative: String? = nil,
         mmp: Affiliate,
-        data: Data
+        data: [String: String]?
     ) {
         self.influencer = influencer
         self.adgroup = adgroup
