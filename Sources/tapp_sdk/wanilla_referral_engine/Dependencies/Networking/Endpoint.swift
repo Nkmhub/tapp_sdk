@@ -57,7 +57,7 @@ extension Environment {
         case .sandbox:
             return "https://api.nkmhub.com/sandbox/ref"
         case .production:
-            return "https://api.nkmhub.com/v1/ref/"
+            return "https://api.nkmhub.com/v1/ref"
         }
     }
 }
