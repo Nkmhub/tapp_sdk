@@ -7,7 +7,26 @@
 
 import Foundation
 
-public final class ReferralEngineInitConfig: Codable {
+public final class TappConfiguration: Codable, Equatable {
+    public static func == (lhs: TappConfiguration, rhs: TappConfiguration) -> Bool {
+        let equalNonOptionalValues = lhs.authToken == rhs.authToken && lhs.env == rhs.env && lhs.tappToken == rhs.tappToken && lhs.affiliate == rhs.affiliate
+
+        let lhsHasAppToken = lhs.appToken != nil
+        let rhsHasAppToken = rhs.appToken != nil
+
+        var appTokensEqual: Bool = false
+
+        if let lhsAppToken = lhs.appToken, let rhsAppToken = rhs.appToken {
+            appTokensEqual = lhsAppToken == rhsAppToken
+        } else {
+            if !lhsHasAppToken, !rhsHasAppToken {
+                appTokensEqual = true
+            }
+        }
+
+        return equalNonOptionalValues && appTokensEqual
+    }
+    
     public let authToken: String
     public let env: Environment
     public let tappToken: String
@@ -29,11 +48,11 @@ public final class ReferralEngineInitConfig: Codable {
         self.bundleID = Bundle.main.bundleIdentifier
     }
 
-    public func set(appToken: String) {
+    func set(appToken: String) {
         self.appToken = appToken
     }
 
-    public func set(hasProcessedReferralEngine: Bool) {
+    func set(hasProcessedReferralEngine: Bool) {
         self.hasProcessedReferralEngine = hasProcessedReferralEngine
     }
 }
@@ -115,35 +134,5 @@ public enum EventAction {
         case .custom(let value):
             return value.isEmpty ? defaultValue : value
         }
-    }
-}
-
-public struct AdRevenueConfig {
-    public let source: String
-    public let revenue: Double
-    public let currency: String
-
-    public init(source: String, revenue: Double, currency: String) {
-        self.source = source
-        self.revenue = revenue
-        self.currency = currency
-    }
-}
-
-public struct PurchaseVerificationConfig {
-    public let transactionId: String
-    public let productId: String
-
-    public init(transactionId: String, productId: String) {
-        self.transactionId = transactionId
-        self.productId = productId
-    }
-}
-
-public struct PushTokenConfig {
-    public let token: String
-
-    public init(token: String) {
-        self.token = token
     }
 }

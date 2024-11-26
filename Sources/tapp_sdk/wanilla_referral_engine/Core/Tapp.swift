@@ -10,8 +10,10 @@ public class Tapp {
 
     // MARK: - Configuration
     // AppDelegate: Called upon didFinishLaunching
-    public static func start(config: ReferralEngineInitConfig) {
-        KeychainHelper.shared.save(config: config)
+    public static func start(config: TappConfiguration) {
+        if let storedConfig = KeychainHelper.shared.config, storedConfig != config {
+            KeychainHelper.shared.save(config: config)
+        }
 
         single.fetchSecretsAndInitializeReferralEngineIfNeeded(completion: nil)
     }
@@ -77,8 +79,25 @@ private extension Tapp {
             }
         }
     }
-    
-    private func secrets(config: ReferralEngineInitConfig, completion: VoidCompletion?) {
+
+    func fetchSecretsAndInitializeReferralEngineIfNeeded(completion: VoidCompletion?) {
+        guard let config = KeychainHelper.shared.config else {
+            completion?(Result.failure(TappError.missingConfiguration))
+            return
+        }
+
+        secrets(config: config) { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success:
+                self.initializeAffiliateService(completion: completion)
+            case .failure(let error):
+                completion?(self.affiliateErrorResult(error: error, affiliate: config.affiliate))
+            }
+        }
+    }
+
+    private func secrets(config: TappConfiguration, completion: VoidCompletion?) {
         guard let storedConfig = KeychainHelper.shared.config else {
             completion?(Result.failure(TappError.missingConfiguration))
             return
@@ -109,23 +128,6 @@ private extension Tapp {
                 self?.handleReferralCallback(url: url, authToken: authToken, completion: completion)
             case .failure(let error):
                 completion?(Result.failure(error))
-            }
-        }
-    }
-
-    private func fetchSecretsAndInitializeReferralEngineIfNeeded(completion: VoidCompletion?) {
-        guard let config = KeychainHelper.shared.config else {
-            completion?(Result.failure(TappError.missingConfiguration))
-            return
-        }
-
-        secrets(config: config) { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success:
-                self.initializeAffiliateService(completion: completion)
-            case .failure(let error):
-                completion?(self.affiliateErrorResult(error: error, affiliate: config.affiliate))
             }
         }
     }

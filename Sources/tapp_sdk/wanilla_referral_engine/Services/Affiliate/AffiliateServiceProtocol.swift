@@ -13,6 +13,7 @@ enum AffiliateServiceError: Error {
 }
 
 public protocol AffiliateServiceProtocol {
+    var isInitialized: Bool { get }
     func initialize(environment: Environment,
                     completion: VoidCompletion?)
 

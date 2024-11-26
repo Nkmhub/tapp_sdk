@@ -8,7 +8,7 @@
 //  Affiliate.swift
 //  wanilla_referral_engine/Models
 
-public enum Affiliate: String, Codable {
+public enum Affiliate: String, Codable, Equatable {
     case adjust
     case appsflyer
     case tapp
@@ -23,10 +23,4 @@ public enum Affiliate: String, Codable {
             return 3
         }
     }
-}
-
-
-public enum UrlAffiliate: String {
-    case adjust
-    case appsflyer
 }

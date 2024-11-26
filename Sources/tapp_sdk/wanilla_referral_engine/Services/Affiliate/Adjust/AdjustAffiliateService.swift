@@ -6,10 +6,9 @@
 import Foundation
 import AdjustSdk
 
+final class AdjustAffiliateService: AdjustServiceProtocol {
 
-public class AdjustAffiliateService: AdjustServiceProtocol {
-
-    private var isInitialized = false
+    private(set) var isInitialized = false
     private let keychainHelper: KeychainHelperProtocol
     private let networkClient: NetworkClientProtocol
 
@@ -20,9 +19,7 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
         self.networkClient = networkClient
     }
 
-    public func initialize(
-        environment: Environment,
-        completion: VoidCompletion?) {
+    func initialize(environment: Environment, completion: VoidCompletion?) {
         guard !isInitialized else {
             Logger.logInfo("Adjust is already initialized.")
             completion?(.success(()))
@@ -43,7 +40,7 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
         completion?(.success(()))
     }
 
-    public func handleCallback(with url: String) {
+    func handleCallback(with url: String) {
         guard let incomingURL = URL(string: url) else {
             Logger.logError(TappError.invalidURL)
             return
@@ -53,7 +50,7 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
         Logger.logInfo("Adjust notified of the incoming URL: \(incomingURL)")
     }
 
-    public func handleEvent(eventId: String, authToken: String?) {
+    func handleEvent(eventId: String, authToken: String?) {
         guard !eventId.isEmpty else {
             Logger.logError(
                 TappError.missingParameters(
@@ -74,7 +71,7 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
     }
 
     // MARK: - Attribution
-    public func getAttribution(completion: @escaping (ADJAttribution?) -> Void)
+    func getAttribution(completion: @escaping (ADJAttribution?) -> Void)
     {
         Adjust.attribution { attribution in
             if let attribution = attribution {
@@ -89,12 +86,12 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
     }
 
     // MARK: - Privacy Compliance
-    public func gdprForgetMe() {
+    func gdprForgetMe() {
         Adjust.gdprForgetMe()
         Logger.logInfo("GDPR Forget Me request sent.")
     }
 
-    public func trackThirdPartySharing(isEnabled: Bool) {
+    func trackThirdPartySharing(isEnabled: Bool) {
         guard
             let thirdPartySharing = ADJThirdPartySharing(
                 isEnabled: NSNumber(value: isEnabled))
@@ -109,7 +106,7 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
     }
 
     // MARK: - Monetization
-    public func trackAdRevenue(
+    func trackAdRevenue(
         source: String, revenue: Double, currency: String
     ) {
         if let adRevenue = ADJAdRevenue(source: source) {
@@ -125,7 +122,7 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
         }
     }
 
-    public func verifyAppStorePurchase(
+    func verifyAppStorePurchase(
         transactionId: String,
         productId: String,
         completion: @escaping (ADJPurchaseVerificationResult) -> Void
@@ -146,13 +143,13 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
     }
 
     // MARK: - Push Token
-    public func setPushToken(_ token: String) {
+    func setPushToken(_ token: String) {
         Adjust.setPushTokenAs(token)
         Logger.logInfo("Push token set: \(token)")
     }
 
     // MARK: - Device IDs
-    public func getAdid(completion: @escaping (String?) -> Void) {
+    func getAdid(completion: @escaping (String?) -> Void) {
         Adjust.adid { adid in
             if let adid = adid {
                 Logger.logInfo("ADID: \(adid)")
@@ -165,7 +162,7 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
         }
     }
 
-    public func getIdfa(completion: @escaping (String?) -> Void) {
+    func getIdfa(completion: @escaping (String?) -> Void) {
         Adjust.idfa { idfa in
             if let idfa = idfa {
                 Logger.logInfo("IDFA: \(idfa)")
@@ -178,7 +175,7 @@ public class AdjustAffiliateService: AdjustServiceProtocol {
         }
     }
 
-    public func test(
+    func test(
         completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
         Logger.logInfo("Unique method on Adjust service executed.")

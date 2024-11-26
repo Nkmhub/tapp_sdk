@@ -5,7 +5,7 @@
 //  Created by Nikolaos Tseperkas on 11/11/24.
 //
 
-public class Logger {
+final class Logger {
     public static func logError(_ error: Error) {
         print("Error: \(error.localizedDescription)")
     }

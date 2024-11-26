@@ -9,8 +9,8 @@ import Foundation
 import Security
 
 protocol KeychainHelperProtocol {
-    func save(config: ReferralEngineInitConfig)
-    var config: ReferralEngineInitConfig? { get }
+    func save(config: TappConfiguration)
+    var config: TappConfiguration? { get }
 }
 
 final class KeychainHelper: KeychainHelperProtocol {
@@ -26,12 +26,12 @@ final class KeychainHelper: KeychainHelperProtocol {
         return "tapp_c"
     }
 
-    public func save(config: ReferralEngineInitConfig) {
+    func save(config: TappConfiguration) {
         save(key: keychainKey, codable: config)
     }
 
-    public var config: ReferralEngineInitConfig? {
-        return get(key: keychainKey, type: ReferralEngineInitConfig.self)
+    var config: TappConfiguration? {
+        return get(key: keychainKey, type: TappConfiguration.self)
     }
 
     private func save(key: String, codable: any Codable) {
