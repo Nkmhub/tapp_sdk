@@ -10,7 +10,7 @@
 import Foundation
 import AdjustSdk
 
-public protocol AdjustServiceProtocol: AffiliateServiceProtocol {
+protocol AdjustServiceProtocol: AffiliateServiceProtocol {
     func getAttribution(completion: @escaping (ADJAttribution?) -> Void)
     func gdprForgetMe()
     func trackThirdPartySharing(isEnabled: Bool)

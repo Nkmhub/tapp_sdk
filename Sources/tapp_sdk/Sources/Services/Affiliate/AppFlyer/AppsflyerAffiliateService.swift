@@ -14,20 +14,24 @@ protocol AppsFlyerAffiliateServiceProtocol: AffiliateServiceProtocol {}
 
 final class AppsflyerAffiliateService: AppsFlyerAffiliateServiceProtocol {
 
+    private(set) var isInitialized = false
     let networkClient: NetworkClientProtocol
     init(networkClient: NetworkClientProtocol) {
         self.networkClient = networkClient
     }
 
-    public func initialize(
-        environment: Environment,
-        completion: VoidCompletion?) {
+    func initialize(environment: Environment, completion: VoidCompletion?) {
+        guard !isInitialized else {
+            completion?(Result.success(()))
+            return
+        }
+
         Logger.logInfo("Initializing Appsflyer...")
-        // Appsflyer-specific initialization logic here
-        completion?(.success(()))
+        isInitialized = true
+        completion?(Result.success(()))
     }
 
-    public func handleCallback(with url: String) {
+    func handleCallback(with url: String) {
         guard let validURL = URL(string: url) else {
             Logger.logError(TappError.invalidURL)
             return
@@ -37,7 +41,7 @@ final class AppsflyerAffiliateService: AppsFlyerAffiliateServiceProtocol {
         // Appsflyer-specific callback handling logic here
     }
 
-    public func handleEvent(eventId: String, authToken: String?) {
+    func handleEvent(eventId: String, authToken: String?) {
         guard !eventId.isEmpty else {
             Logger.logError(
                 TappError.missingParameters(

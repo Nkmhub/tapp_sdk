@@ -4,7 +4,7 @@
 
 import Foundation
 
-public struct GenerateURLRequest: Codable {
+struct GenerateURLRequest: Codable {
     let influencer: String
     let adGroup: String?
     let creative: String?

@@ -24,7 +24,6 @@ public enum TappError: Error {
     case missingParameters(details: String? = nil) // Add details
     case eventActionMissing
     case missingConfiguration
-    // You can add more cases as needed
 }
 
 extension TappError: LocalizedError {
