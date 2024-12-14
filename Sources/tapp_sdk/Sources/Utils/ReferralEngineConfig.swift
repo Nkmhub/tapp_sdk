@@ -7,7 +7,8 @@
 
 import Foundation
 
-public final class TappConfiguration: Codable, Equatable {
+@objc
+public final class TappConfiguration: NSObject, Codable {
     public static func == (lhs: TappConfiguration, rhs: TappConfiguration) -> Bool {
         let equalNonOptionalValues = lhs.authToken == rhs.authToken && lhs.env == rhs.env && lhs.tappToken == rhs.tappToken && lhs.affiliate == rhs.affiliate
 
@@ -35,6 +36,7 @@ public final class TappConfiguration: Codable, Equatable {
     private(set) var appToken: String?
     private(set) var hasProcessedReferralEngine: Bool = false
 
+    @objc
     public init(
         authToken: String,
         env: Environment,
@@ -46,6 +48,7 @@ public final class TappConfiguration: Codable, Equatable {
         self.tappToken = tappToken
         self.affiliate = affiliate
         self.bundleID = Bundle.main.bundleIdentifier
+        super.init()
     }
 
     func set(appToken: String) {
@@ -57,7 +60,8 @@ public final class TappConfiguration: Codable, Equatable {
     }
 }
 
-public struct AffiliateURLConfiguration {
+@objc
+public final class AffiliateURLConfiguration: NSObject {
     public let influencer: String
     public let adgroup: String?
     public let creative: String?
@@ -76,16 +80,20 @@ public struct AffiliateURLConfiguration {
         self.creative = creative
         self.mmp = mmp
         self.data = data
+        super.init()
     }
 }
 
-public struct EventConfig {
+@objc
+public final class EventConfig: NSObject {
     public let affiliate: Affiliate
     public let eventToken: String
 
+    @objc
     public init(affiliate: Affiliate, eventToken: String) {
         self.affiliate = affiliate
         self.eventToken = eventToken
+        super.init()
     }
 }
 

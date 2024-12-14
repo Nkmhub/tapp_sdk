@@ -8,6 +8,7 @@
 import Foundation
 
 public typealias VoidCompletion = (_ result: Result<Void, Error>) -> Void
+
 public typealias GenerateURLCompletion = (_ result: Result<GeneratedURLResponse, Error>) -> Void
 typealias SecretsCompletion = (_ result: Result<SecretsResponse, Error>) -> Void
 
@@ -49,7 +50,7 @@ final class TappAffiliateService: TappAffiliateServiceProtocol {
         guard let config = keychainHelper.config, let bundleID = config.bundleID else { return }
         let createRequest = CreateAffiliateURLRequest(tappToken: config.tappToken,
                                                       bundleID: bundleID,
-                                                      mmp: config.affiliate.intValue,
+                                                      mmp: config.affiliate.rawValue,
                                                       influencer: uniqueID,
                                                       adGroup: adGroup,
                                                       creative: creative,
@@ -88,7 +89,7 @@ final class TappAffiliateService: TappAffiliateServiceProtocol {
             completion?(Result.failure(ServiceError.invalidData))
             return
         }
-        let secretsRequest = SecretsRequest(tappToken: config.tappToken, bundleID: bundleID, mmp: affiliate.intValue)
+        let secretsRequest = SecretsRequest(tappToken: config.tappToken, bundleID: bundleID, mmp: affiliate.rawValue)
         let endpoint = TappEndpoint.secrets(secretsRequest)
 
         guard let request = endpoint.request else {
