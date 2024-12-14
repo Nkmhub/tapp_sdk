@@ -1,15 +1,16 @@
 import AdjustSdk
 import Foundation
 
-public class Tapp {
+@objc
+public class Tapp: NSObject {
+
     static let single: Tapp = .init()
     let dependencies: Dependencies = .live
 
-    private init() {}
-
-
     // MARK: - Configuration
     // AppDelegate: Called upon didFinishLaunching
+
+    @objc
     public static func start(config: TappConfiguration) {
         if let storedConfig = KeychainHelper.shared.config, storedConfig != config {
             KeychainHelper.shared.save(config: config)
@@ -29,6 +30,18 @@ public class Tapp {
         single.appWillOpen(url, authToken: config.authToken, completion: completion)
     }
 
+    @objc
+    public static func appWillOpen(_ url: URL, completion: ((_ error: Error?) -> Void)?) {
+        appWillOpen(url) { result in
+            switch result {
+            case .success:
+                completion?(nil)
+            case .failure(let error):
+                completion?(error)
+            }
+        }
+    }
+
     public static func url(config: AffiliateURLConfiguration,
                     completion: GenerateURLCompletion?) {
         single.fetchSecretsAndInitializeReferralEngineIfNeeded { result in
@@ -43,8 +56,21 @@ public class Tapp {
         }
     }
 
+    @objc
+    public static func url(config: AffiliateURLConfiguration, completion: ((_ response: GeneratedURLResponse?, _ error: Error?) -> Void)?) {
+        url(config: config) { result in
+            switch result {
+            case .success(let response):
+                completion?(response, nil)
+            case .failure(let error):
+                completion?(nil, error)
+            }
+        }
+    }
+
     // MARK: - Handle Event
     //For MMP Specific events
+    @objc
     public static func handleEvent(config: EventConfig) {
         guard let storedConfig = KeychainHelper.shared.config else { return }
         single.affiliateService?.handleEvent(eventId: config.eventToken,
@@ -52,6 +78,7 @@ public class Tapp {
     }
 
     //For Tapp Events
+    //TODO: Need to convert to Objc after we get the list of all the updated TappEvents + Custom
     public static func handleTappEvent(event: TappEvent) {
         guard event.eventAction.isValid else {
             Logger.logError(TappError.eventActionMissing)

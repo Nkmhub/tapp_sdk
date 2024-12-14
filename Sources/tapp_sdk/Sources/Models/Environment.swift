@@ -5,7 +5,8 @@
 //  Created by Nikolaos Tseperkas on 1/11/24.
 //
 
-public enum Environment: String, Codable, Equatable {
-    case sandbox
-    case production
+@objc
+public enum Environment: Int, Codable, Equatable {
+    case sandbox = 0
+    case production = 1
 }

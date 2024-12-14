@@ -4,7 +4,8 @@
 
 import Foundation
 
-struct GenerateURLRequest: Codable {
+@objc
+final class GenerateURLRequest: NSObject, Codable {
     let influencer: String
     let adGroup: String?
     let creative: String?
@@ -17,11 +18,13 @@ struct GenerateURLRequest: Codable {
         case data
     }
 
+    @objc
     public init(influencer: String, adGroup: String? = nil, creative: String? = nil, data: [String: String]?) {
         self.influencer = influencer
         self.adGroup = adGroup
         self.creative = creative
         self.data = data
+        super.init()
     }
 }
 
@@ -61,7 +64,10 @@ struct CreateAffiliateURLRequest: Codable {
     }
 }
 
-public struct GeneratedURLResponse: Codable {
+@objc
+public final class GeneratedURLResponse: NSObject, Codable {
+
+    @objc
     public let url: URL
 
     enum CodingKeys: String, CodingKey {
