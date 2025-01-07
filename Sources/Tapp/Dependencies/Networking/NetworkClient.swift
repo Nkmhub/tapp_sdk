@@ -15,12 +15,13 @@ final class NetworkClient: NetworkClientProtocol {
     let keychainHelper: KeychainHelperProtocol
 
     init(sessionConfiguration: SessionConfigurationProtocol,
-         keychainHelper: KeychainHelperProtocol) {
+         keychainHelper: KeychainHelperProtocol = KeychainHelper.shared,
+         session: URLSessionProtocol? = nil) {
         self.sessionConfiguration = sessionConfiguration
         self.keychainHelper = keychainHelper
-        self.session = URLSession(configuration: sessionConfiguration.configuration,
-                                  delegate: sessionConfiguration,
-                                  delegateQueue: .main)
+        self.session = session ?? URLSession(configuration: sessionConfiguration.configuration,
+                                             delegate: sessionConfiguration,
+                                             delegateQueue: .main)
     }
 
     @discardableResult func execute(request: URLRequest, completion: NetworkServiceCompletion?) -> URLSessionDataTaskProtocol? {

@@ -38,8 +38,7 @@ extension Dependencies {
 
         let tappService: TappAffiliateServiceProtocol = TappAffiliateService(keychainHelper: keychainHelper,
                                                                              networkClient: networkClient)
-        let adjustService: AdjustServiceProtocol = AdjustAffiliateService(keychainHelper: keychainHelper,
-                                                                                  networkClient: networkClient)
+        let adjustService: AdjustServiceProtocol = AdjustAffiliateService(keychainHelper: keychainHelper)
         let appsFlyerService: AppsFlyerAffiliateServiceProtocol = AppsflyerAffiliateService(networkClient: networkClient)
         let services = Services(tappService: tappService,
                                 adjustService: adjustService,
