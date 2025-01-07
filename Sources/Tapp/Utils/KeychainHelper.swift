@@ -61,7 +61,7 @@ final class KeychainHelper: KeychainHelperProtocol {
         return try? decoder.decode(type, from: data) as T
     }
 
-    private func delete(key: String) {
+    func delete(key: String) {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
                                     kSecAttrAccount as String: key]
         SecItemDelete(query as CFDictionary)

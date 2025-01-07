@@ -10,7 +10,7 @@ extension Tapp {
 
     // MARK: - Adjust Specific Features
 
-    public static func getAdjustAttribution(completion: @escaping (ADJAttribution?) -> Void) {
+    public static func getAdjustAttribution(completion: @escaping (AdjustAttribution?) -> Void) {
         single.dependencies.services.adjustService.getAttribution(completion: completion)
     }
 
@@ -31,7 +31,7 @@ extension Tapp {
 
     public static func adjustVerifyAppStorePurchase(transactionId: String,
                                              productId: String,
-                                             completion: @escaping (ADJPurchaseVerificationResult) -> Void) {
+                                                    completion: @escaping (AdjustPurchaseVerificationResult) -> Void) {
         single.dependencies.services.adjustService.verifyAppStorePurchase(transactionId: transactionId,
                                                       productId: productId,
                                                       completion: completion)

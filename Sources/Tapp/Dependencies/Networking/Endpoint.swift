@@ -39,7 +39,7 @@ extension String {
     }
 }
 
-enum HTTPMethod: String {
+enum HTTPMethod: String, CaseIterable {
     case options = "OPTIONS"
     case get     = "GET"
     case head    = "HEAD"

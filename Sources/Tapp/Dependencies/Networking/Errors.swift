@@ -14,9 +14,14 @@ enum ServiceError: Error {
     case noNetwork
 }
 
-struct ServerError: Error, Codable {
+struct ServerError: Error, Codable, Equatable {
     let error: Bool
     let reason: String
+
+    init(error: Bool, reason: String) {
+        self.error = error
+        self.reason = reason
+    }
 
     enum ErrorType: String {
         case other

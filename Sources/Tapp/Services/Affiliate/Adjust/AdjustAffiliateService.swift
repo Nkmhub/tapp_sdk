@@ -10,13 +10,13 @@ final class AdjustAffiliateService: AdjustServiceProtocol {
 
     private(set) var isInitialized = false
     private let keychainHelper: KeychainHelperProtocol
-    private let networkClient: NetworkClientProtocol
+    private let adjustInterface: AdjustInterfaceProtocol
 
     // Initialize with appToken
     init(keychainHelper: KeychainHelperProtocol,
-         networkClient: NetworkClientProtocol) {
+         adjustInterface: AdjustInterfaceProtocol = AdjustInterface()) {
         self.keychainHelper = keychainHelper
-        self.networkClient = networkClient
+        self.adjustInterface = adjustInterface
     }
 
     func initialize(environment: Environment, completion: VoidCompletion?) {
@@ -31,9 +31,8 @@ final class AdjustAffiliateService: AdjustServiceProtocol {
             return
         }
 
-        let adjustConfig = ADJConfig(appToken: token,
-                                     environment: environment.adjustEnvironment)
-        Adjust.initSdk(adjustConfig)
+        adjustInterface.initialize(appToken: token,
+                                   environment: environment)
 
         isInitialized = true
         Logger.logInfo("Adjust initialized successfully.")
@@ -46,150 +45,71 @@ final class AdjustAffiliateService: AdjustServiceProtocol {
             return
         }
 
-        Adjust.processDeeplink(ADJDeeplink(deeplink: incomingURL)!)
-        Logger.logInfo("Adjust notified of the incoming URL: \(incomingURL)")
+        adjustInterface.processDeepLink(url: incomingURL)
     }
 
     func handleEvent(eventId: String, authToken: String?) {
         guard !eventId.isEmpty else {
-            Logger.logError(
-                TappError.missingParameters(
-                    details: "Event ID is empty."))
+            let error = TappError.missingParameters(details: "Event ID is empty.")
+            Logger.logError(error)
             return
         }
 
-        if let event = ADJEvent(eventToken: eventId) {
-            Adjust.trackEvent(event)
-            Logger.logInfo("Tracked event on Adjust: \(event.description)")
+        if adjustInterface.trackEvent(eventID: eventId) {
+            Logger.logInfo("Tracked event on Adjust: \(eventId)")
         } else {
-            Logger.logError(
-                TappError.apiError(
-                    message:
-                        "Could not create ADJEvent with eventId \(eventId).",
-                    endpoint: ""))
+            let error = TappError.apiError(message:
+                                            "Could not create ADJEvent with eventId \(eventId).",
+                                           endpoint: "")
+            Logger.logError(error)
         }
     }
+}
 
+extension AdjustAffiliateService {
     // MARK: - Attribution
-    func getAttribution(completion: @escaping (ADJAttribution?) -> Void)
+    func getAttribution(completion: @escaping (AdjustAttribution?) -> Void)
     {
-        Adjust.attribution { attribution in
-            if let attribution = attribution {
-                Logger.logInfo("Attribution: \(attribution)")
-            } else {
-                Logger.logError(
-                    TappError.unknownError(
-                        details: "No attribution available."))
-            }
-            completion(attribution)
-        }
+        adjustInterface.getAttribution(completion: completion)
     }
 
     // MARK: - Privacy Compliance
     func gdprForgetMe() {
-        Adjust.gdprForgetMe()
-        Logger.logInfo("GDPR Forget Me request sent.")
+        adjustInterface.gdprForgetMe()
     }
 
     func trackThirdPartySharing(isEnabled: Bool) {
-        guard
-            let thirdPartySharing = ADJThirdPartySharing(
-                isEnabled: NSNumber(value: isEnabled))
-        else {
-            Logger.logError(
-                TappError.unknownError(
-                    details: "Failed to create ADJThirdPartySharing object."))
-            return
-        }
-        Adjust.trackThirdPartySharing(thirdPartySharing)
-        Logger.logInfo("Third-party sharing set to: \(isEnabled).")
+        adjustInterface.trackThirdPartySharing(isEnabled: isEnabled)
     }
 
     // MARK: - Monetization
-    func trackAdRevenue(
-        source: String, revenue: Double, currency: String
-    ) {
-        if let adRevenue = ADJAdRevenue(source: source) {
-            adRevenue.setRevenue(revenue, currency: currency)
-            Adjust.trackAdRevenue(adRevenue)
-            Logger.logInfo("Tracked ad revenue for \(source).")
-        } else {
-            Logger.logError(
-                TappError.unknownError(
-                    details:
-                        "Failed to create ADJAdRevenue object for source: \(source)."
-                ))
-        }
+    func trackAdRevenue(source: String,
+                        revenue: Double,
+                        currency: String) {
+        adjustInterface.trackAdRevenue(source: source,
+                                       revenue: revenue,
+                                       currency: currency)
     }
 
-    func verifyAppStorePurchase(
-        transactionId: String,
-        productId: String,
-        completion: @escaping (ADJPurchaseVerificationResult) -> Void
-    ) {
-        if let purchase = ADJAppStorePurchase(
-            transactionId: transactionId, productId: productId)
-        {
-            Adjust.verifyAppStorePurchase(purchase) { result in
-                Logger.logInfo("Purchase verification result: \(result)")
-                completion(result)
-            }
-        } else {
-            Logger.logError(
-                TappError.unknownError(
-                    details: "Failed to create ADJAppStorePurchase object."))
-            completion(ADJPurchaseVerificationResult())  // Pass an empty result
-        }
+    func verifyAppStorePurchase(transactionId: String,
+                                productId: String,
+                                completion: @escaping (AdjustPurchaseVerificationResult) -> Void) {
+        adjustInterface.verifyAppStorePurchase(transactionId: transactionId,
+                                               productId: productId,
+                                               completion: completion)
     }
 
     // MARK: - Push Token
     func setPushToken(_ token: String) {
-        Adjust.setPushTokenAs(token)
-        Logger.logInfo("Push token set: \(token)")
+        adjustInterface.setPushToken(token)
     }
 
     // MARK: - Device IDs
     func getAdid(completion: @escaping (String?) -> Void) {
-        Adjust.adid { adid in
-            if let adid = adid {
-                Logger.logInfo("ADID: \(adid)")
-            } else {
-                Logger.logError(
-                    TappError.unknownError(
-                        details: "No ADID available."))
-            }
-            completion(adid)
-        }
+        adjustInterface.getAdid(completion: completion)
     }
 
     func getIdfa(completion: @escaping (String?) -> Void) {
-        Adjust.idfa { idfa in
-            if let idfa = idfa {
-                Logger.logInfo("IDFA: \(idfa)")
-            } else {
-                Logger.logError(
-                    TappError.unknownError(
-                        details: "No IDFA available."))
-            }
-            completion(idfa)
-        }
-    }
-
-    func test(
-        completion: @escaping (Result<[String: Any], Error>) -> Void
-    ) {
-        Logger.logInfo("Unique method on Adjust service executed.")
-        completion(.success(["status": "Test method executed"]))
-    }
-}
-
-private extension Environment {
-    var adjustEnvironment: String {
-        switch self {
-        case .sandbox:
-            return ADJEnvironmentSandbox
-        case .production:
-            return ADJEnvironmentProduction
-        }
+        adjustInterface.getIdfa(completion: completion)
     }
 }
