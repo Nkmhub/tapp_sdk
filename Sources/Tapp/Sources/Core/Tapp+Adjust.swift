@@ -1,6 +1,6 @@
 //
 //  ReferralEngineAdjustSDK.swift
-//  tapp_sdk
+//  Tapp
 //
 //  Created by Nikolaos Tseperkas on 12/11/24.
 //

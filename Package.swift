@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "tapp_sdk",
+    name: "Tapp",
     platforms: [
         .iOS(.v13) // Define platform version if necessary
     ],
     products: [
         .library(
-            name: "tapp_sdk",
-            targets: ["tapp_sdk"]
+            name: "Tapp",
+            targets: ["Tapp"]
         ),
     ],
     dependencies: [
@@ -18,14 +18,14 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "tapp_sdk",
+            name: "Tapp",
             dependencies: [
                 .product(name: "AdjustSdk", package: "ios_sdk")  // Adjust SDK dependency
             ]
         ),
         .testTarget(
-            name: "tapp_sdkTests",
-            dependencies: ["tapp_sdk"]
+            name: "TappTests",
+            dependencies: ["Tapp"]
         ),
     ]
 )
