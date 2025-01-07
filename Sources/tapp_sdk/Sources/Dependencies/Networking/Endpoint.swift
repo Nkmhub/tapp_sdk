@@ -1,6 +1,6 @@
 //
 //  Endpoint.swift
-//  tapp_sdk
+//  Tapp
 //
 //  Created by Alex Stergiou on 19/11/2024.
 //

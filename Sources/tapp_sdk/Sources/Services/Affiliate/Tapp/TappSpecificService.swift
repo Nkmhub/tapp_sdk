@@ -1,6 +1,6 @@
 //
 //  TappSpecificService.swift
-//  tapp_sdk
+//  Tapp
 //
 //  Created by Nikolaos Tseperkas on 16/11/24.
 //

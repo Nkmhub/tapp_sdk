@@ -152,6 +152,10 @@ private extension Tapp {
         fetchSecretsAndInitializeReferralEngineIfNeeded { [weak self] result in
             switch result {
             case .success:
+                if let storedConfig = KeychainHelper.shared.config {
+                    storedConfig.set(originURL: url)
+                    KeychainHelper.shared.save(config: storedConfig)
+                }
                 self?.handleReferralCallback(url: url, authToken: authToken, completion: completion)
             case .failure(let error):
                 completion?(Result.failure(error))

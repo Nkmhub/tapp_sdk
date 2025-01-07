@@ -1,6 +1,6 @@
 //
 //  TappAffiliateService.swift
-//  tapp_sdk
+//  Tapp
 //
 //  Created by Nikolaos Tseperkas on 2/11/24.
 //
@@ -120,9 +120,8 @@ final class TappAffiliateService: TappAffiliateServiceProtocol {
         }
         let eventRequest = TappEventRequest(tappToken: config.tappToken,
                                             bundleID: bundleID,
-                                            eventName: event.eventName,
-                                            eventAction: event.eventAction.rawValue,
-                                            eventCustomAction: event.eventAction.eventCustomAction)
+                                            eventName: event.eventAction.name,
+                                            url: config.originURL?.absoluteString)
         let endpoint = TappEndpoint.tappEvent(eventRequest)
         commonVoid(with: endpoint, completion: completion)
     }

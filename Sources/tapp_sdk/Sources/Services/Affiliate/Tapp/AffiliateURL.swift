@@ -97,32 +97,27 @@ struct TappEventRequest: Codable {
     private let tappToken: String
     private let bundleID: String
     private let eventName: String
-    private let eventAction: Int
-    private let eventCustomAction: String
+    private let url: String?
 
     enum CodingKeys: String, CodingKey {
         case tappToken = "tapp_token"
         case bundleID = "bundle_id"
         case eventName = "event_name"
-        case eventAction = "event_action"
-        case eventCustomAction = "event_custom_action"
+        case url = "event_url"
     }
 
-    init(tappToken: String, bundleID: String, eventName: String, eventAction: Int, eventCustomAction: String) {
+    init(tappToken: String, bundleID: String, eventName: String, url: String?) {
         self.tappToken = tappToken
         self.bundleID = bundleID
         self.eventName = eventName
-        self.eventAction = eventAction
-        self.eventCustomAction = eventCustomAction
+        self.url = url
     }
 }
 
 public struct TappEvent {
-    let eventName: String
     let eventAction: EventAction
 
-    public init(eventName: String, eventAction: EventAction) {
-        self.eventName = eventName
+    public init(eventAction: EventAction) {
         self.eventAction = eventAction
     }
 }

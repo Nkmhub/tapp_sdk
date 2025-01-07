@@ -1,6 +1,6 @@
 //
 //  Logger.swift
-//  tapp_sdk
+//  Tapp
 //
 //  Created by Nikolaos Tseperkas on 11/11/24.
 //

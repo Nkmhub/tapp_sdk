@@ -1,6 +1,6 @@
 //
 //  Enviroment.swift
-//  tapp_sdk
+//  Tapp
 //
 //  Created by Nikolaos Tseperkas on 1/11/24.
 //
