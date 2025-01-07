@@ -1,108 +1,49 @@
-//
-//  ReferralEngineConfig.swift
-//  Tapp
-//
-//  Created by Nikolaos Tseperkas on 11/11/24.
-//
-
 import Foundation
 
-@objc
-public final class TappConfiguration: NSObject, Codable {
-    public static func == (lhs: TappConfiguration, rhs: TappConfiguration) -> Bool {
-        let equalNonOptionalValues = lhs.authToken == rhs.authToken && lhs.env == rhs.env && lhs.tappToken == rhs.tappToken && lhs.affiliate == rhs.affiliate
+public enum EventAction: CaseIterable, Equatable {
+    public static var allCases: [EventAction] = [
+        .addPaymentInfo,
+        .addToCart,
+        .addToWishlist,
+        .completeRegistration,
+        .contact,
+        .customizeProduct,
+        .donate,
+        .findLocation,
+        .initiateCheckout,
+        .generateLead,
+        .purchase,
+        .schedule,
+        .search,
+        .startTrial,
+        .submitApplication,
+        .subscribe,
+        .viewContent,
+        .clickButton,
+        .downloadFile,
+        .joinGroup,
+        .achieveLevel,
+        .createGroup,
+        .createRole,
+        .linkClick,
+        .linkImpression,
+        .applyForLoan,
+        .loanApproval,
+        .loanDisbursal,
+        .login,
+        .rate,
+        .spendCredits,
+        .unlockAchievement,
+        .addShippingInfo,
+        .earnVirtualCurrency,
+        .startLevel,
+        .completeLevel,
+        .postScore,
+        .selectContent,
+        .beginTutorial,
+        .completeTutorial
+    ]
 
-        let lhsHasAppToken = lhs.appToken != nil
-        let rhsHasAppToken = rhs.appToken != nil
-
-        var appTokensEqual: Bool = false
-
-        if let lhsAppToken = lhs.appToken, let rhsAppToken = rhs.appToken {
-            appTokensEqual = lhsAppToken == rhsAppToken
-        } else {
-            if !lhsHasAppToken, !rhsHasAppToken {
-                appTokensEqual = true
-            }
-        }
-
-        return equalNonOptionalValues && appTokensEqual
-    }
-    
-    let authToken: String
-    let env: Environment
-    let tappToken: String
-    let affiliate: Affiliate
-    let bundleID: String?
-    private(set) var originURL: URL?
-    private(set) var appToken: String?
-    private(set) var hasProcessedReferralEngine: Bool = false
-
-    @objc
-    public init(
-        authToken: String,
-        env: Environment,
-        tappToken: String,
-        affiliate: Affiliate
-    ) {
-        self.authToken = authToken
-        self.env = env
-        self.tappToken = tappToken
-        self.affiliate = affiliate
-        self.bundleID = Bundle.main.bundleIdentifier
-        super.init()
-    }
-
-    func set(appToken: String) {
-        self.appToken = appToken
-    }
-
-    func set(originURL: URL) {
-        self.originURL = originURL
-    }
-
-    func set(hasProcessedReferralEngine: Bool) {
-        self.hasProcessedReferralEngine = hasProcessedReferralEngine
-    }
-}
-
-@objc
-public final class AffiliateURLConfiguration: NSObject {
-    public let influencer: String
-    public let adgroup: String?
-    public let creative: String?
-    public let mmp: Affiliate
-    public let data: [String: String]?
-
-    public init(
-        influencer: String,
-        adgroup: String? = nil,
-        creative: String? = nil,
-        mmp: Affiliate,
-        data: [String: String]?
-    ) {
-        self.influencer = influencer
-        self.adgroup = adgroup
-        self.creative = creative
-        self.mmp = mmp
-        self.data = data
-        super.init()
-    }
-}
-
-@objc
-public final class EventConfig: NSObject {
-    public let affiliate: Affiliate
-    public let eventToken: String
-
-    @objc
-    public init(affiliate: Affiliate, eventToken: String) {
-        self.affiliate = affiliate
-        self.eventToken = eventToken
-        super.init()
-    }
-}
-
-public enum EventAction {
     case addPaymentInfo
     case addToCart
     case addToWishlist
