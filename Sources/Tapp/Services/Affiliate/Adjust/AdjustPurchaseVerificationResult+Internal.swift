@@ -1,9 +1,9 @@
 import Foundation
 import AdjustSdk
 extension AdjustPurchaseVerificationResult {
-    init(adjResult: ADJPurchaseVerificationResult) {
-        self.message = adjResult.message
-        self.code = adjResult.code
-        self.verificationStatus = adjResult.verificationStatus
+    convenience init(adjResult: ADJPurchaseVerificationResult) {
+        self.init(message: adjResult.message,
+                  code: adjResult.code,
+                  verificationStatus: adjResult.verificationStatus)
     }
 }

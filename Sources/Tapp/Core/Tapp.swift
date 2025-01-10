@@ -17,6 +17,7 @@ public class Tapp: NSObject {
         }
 
         single.fetchSecretsAndInitializeReferralEngineIfNeeded(completion: nil)
+        
     }
     // MARK: - Process Referral Engine
 
@@ -78,7 +79,7 @@ public class Tapp: NSObject {
     }
 
     //For Tapp Events
-    //TODO: Need to convert to Objc after we get the list of all the updated TappEvents + Custom
+    @objc
     public static func handleTappEvent(event: TappEvent) {
         guard event.eventAction.isValid else {
             Logger.logError(TappError.eventActionMissing)

@@ -8,6 +8,7 @@ public final class AffiliateURLConfiguration: NSObject {
     public let mmp: Affiliate
     public let data: [String: String]?
 
+    @objc
     public init(
         influencer: String,
         adgroup: String? = nil,

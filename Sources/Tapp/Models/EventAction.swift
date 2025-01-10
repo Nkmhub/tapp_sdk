@@ -1,5 +1,21 @@
 import Foundation
 
+struct EventActionMapper {
+    let eventActionName: String
+
+    init(eventActionName: String) {
+        self.eventActionName = eventActionName
+    }
+
+    var eventAction: EventAction {
+        let dictionary = EventAction.allCases.nameDictionary
+        if let eventAction = dictionary[eventActionName.lowercased()] {
+            return eventAction
+        }
+        return .custom(eventActionName)
+    }
+}
+
 public enum EventAction: CaseIterable, Equatable {
     public static var allCases: [EventAction] = [
         .addPaymentInfo,
@@ -189,5 +205,15 @@ public enum EventAction: CaseIterable, Equatable {
         case .custom(let string):
             return string
         }
+    }
+}
+
+private extension Array where Element == EventAction {
+    var nameDictionary: [String: EventAction] {
+        var dictionary: [String: EventAction] = [:]
+        forEach { action in
+            dictionary[action.name.lowercased()] = action
+        }
+        return dictionary
     }
 }

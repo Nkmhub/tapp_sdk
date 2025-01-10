@@ -2,19 +2,19 @@ import Foundation
 import AdjustSdk
 
 extension AdjustAttribution {
-    init?(adjAttribution: ADJAttribution?) {
+    convenience init?(adjAttribution: ADJAttribution?) {
         guard let adjAttribution else { return nil }
 
-        self.trackerToken = adjAttribution.trackerToken
-        self.trackerName = adjAttribution.trackerName
-        self.network = adjAttribution.network
-        self.campaign = adjAttribution.campaign
-        self.adGroup = adjAttribution.adgroup
-        self.creative = adjAttribution.creative
-        self.clickLabel = adjAttribution.clickLabel
-        self.costType = adjAttribution.costType
-        self.costAmount = adjAttribution.costAmount
-        self.costCurrency = adjAttribution.costCurrency
+        self.init(trackerToken: adjAttribution.trackerToken,
+                  trackerName: adjAttribution.trackerName,
+                  network: adjAttribution.network,
+                  campaign: adjAttribution.campaign,
+                  adGroup: adjAttribution.adgroup,
+                  creative: adjAttribution.creative,
+                  clickLabel: adjAttribution.clickLabel,
+                  costType: adjAttribution.costType,
+                  costAmount: adjAttribution.costAmount,
+                  costCurrency: adjAttribution.costCurrency)
     }
 
     var toADJAttribution: ADJAttribution {
