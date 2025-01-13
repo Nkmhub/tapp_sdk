@@ -24,7 +24,9 @@ public class Tapp: NSObject {
     //AppDelegate called when receiving a url
     public static func appWillOpen(_ url: URL, completion: VoidCompletion?) {
         guard let config = KeychainHelper.shared.config else {
-            completion?(Result.failure(TappError.missingConfiguration))
+            let error = TappError.missingConfiguration
+            Logger.logError(error)
+            completion?(Result.failure(error))
             return
         }
 
@@ -103,7 +105,9 @@ private extension Tapp {
                 self.affiliateService?.handleCallback(with: url.absoluteString)
                 self.setProcessedReferralEngine()
             case .failure(let error):
-                completion?(self.affiliateErrorResult(error: error, affiliate: .tapp))
+                let err = TappError.affiliateServiceError(affiliate: .tapp, underlyingError: error)
+                Logger.logError(err)
+                completion?(Result.failure(err))
             }
         }
     }
@@ -120,7 +124,9 @@ private extension Tapp {
             case .success:
                 self.initializeAffiliateService(completion: completion)
             case .failure(let error):
-                completion?(self.affiliateErrorResult(error: error, affiliate: config.affiliate))
+                let err = TappError.affiliateServiceError(affiliate: config.affiliate, underlyingError: error)
+                Logger.logError(err)
+                completion?(Result.failure(err))
             }
         }
     }
@@ -143,7 +149,9 @@ private extension Tapp {
                 KeychainHelper.shared.save(config: storedConfig)
                 completion?(.success(()))
             case .failure(let error):
-                completion?(self.affiliateErrorResult(error: error, affiliate: config.affiliate))
+                let err = TappError.affiliateServiceError(affiliate: config.affiliate, underlyingError: error)
+                Logger.logError(err)
+                completion?(Result.failure(err))
             }
         }
     }
@@ -159,6 +167,7 @@ private extension Tapp {
                 }
                 self?.handleReferralCallback(url: url, authToken: authToken, completion: completion)
             case .failure(let error):
+                Logger.logError(error)
                 completion?(Result.failure(error))
             }
         }
@@ -166,13 +175,17 @@ private extension Tapp {
 
     private func initializeAffiliateService(completion: VoidCompletion?) {
         guard let service = affiliateService else {
-            completion?(Result.failure(TappError.missingParameters(details: "Affiliate service not configured")))
+            let error = TappError.missingParameters(details: "Affiliate service not configured")
+            Logger.logError(error)
+            completion?(Result.failure(error))
             return
         }
 
         guard let storedConfig = KeychainHelper.shared.config else {
-            completion?(Result.failure(TappError.missingParameters(details:
-                            "Missing required credentials or bundle identifier")))
+            let error = TappError.missingParameters(details:
+                                                        "Missing required credentials or bundle identifier")
+            Logger.logError(error)
+            completion?(Result.failure(error))
             return
         }
 
@@ -189,10 +202,6 @@ private extension Tapp {
 
     private func hasProcessedReferralEngine() -> Bool {
         return KeychainHelper.shared.config?.hasProcessedReferralEngine ?? false
-    }
-
-    private func affiliateErrorResult(error: any Error, affiliate: Affiliate) -> Result<Void, Error> {
-        return Result.failure(TappError.affiliateServiceError(affiliate: affiliate, underlyingError: error))
     }
 }
 
