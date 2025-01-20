@@ -14,8 +14,8 @@ public class Tapp: NSObject {
 
     @objc
     public static func start(config: TappConfiguration) {
-        if let storedConfig = KeychainHelper.shared.config, storedConfig != config {
-            KeychainHelper.shared.save(config: config)
+        if let storedConfig = single.dependencies.keychainHelper.config, storedConfig != config {
+            single.dependencies.keychainHelper.save(config: config)
         }
 
         single.fetchSecretsAndInitializeReferralEngineIfNeeded(completion: nil)
@@ -25,7 +25,7 @@ public class Tapp: NSObject {
 
     //AppDelegate called when receiving a url
     public static func appWillOpen(_ url: URL, completion: VoidCompletion?) {
-        guard let config = KeychainHelper.shared.config else {
+        guard let config = single.dependencies.keychainHelper.config else {
             let error = TappError.missingConfiguration
             Logger.logError(error)
             completion?(Result.failure(error))
@@ -77,7 +77,7 @@ public class Tapp: NSObject {
     //For MMP Specific events
     @objc
     public static func handleEvent(config: EventConfig) {
-        guard let storedConfig = KeychainHelper.shared.config else { return }
+        guard let storedConfig = single.dependencies.keychainHelper.config else { return }
         single.affiliateService?.handleEvent(eventId: config.eventToken,
                                              authToken: storedConfig.authToken)
     }
@@ -115,7 +115,7 @@ private extension Tapp {
     }
 
     private func fetchSecretsAndInitializeReferralEngineIfNeeded(completion: VoidCompletion?) {
-        guard let config = KeychainHelper.shared.config else {
+        guard let config = dependencies.keychainHelper.config else {
             completion?(Result.failure(TappError.missingConfiguration))
             return
         }
@@ -154,7 +154,7 @@ private extension Tapp {
     }
 
     private func secrets(config: TappConfiguration, completion: VoidCompletion?) -> URLSessionDataTaskProtocol? {
-        guard let storedConfig = KeychainHelper.shared.config else {
+        guard let storedConfig = dependencies.keychainHelper.config else {
             completion?(Result.failure(TappError.missingConfiguration))
             return nil
         }
@@ -164,11 +164,12 @@ private extension Tapp {
             return nil
         }
 
-        return dependencies.services.tappService.secrets(affiliate: config.affiliate) { [unowned config] result in
+        return dependencies.services.tappService.secrets(affiliate: config.affiliate) { [unowned config, weak self] result in
+            guard let self else { return }
             switch result {
             case .success(let response):
                 storedConfig.set(appToken: response.secret)
-                KeychainHelper.shared.save(config: storedConfig)
+                self.dependencies.keychainHelper.save(config: storedConfig)
                 completion?(.success(()))
             case .failure(let error):
                 let err = TappError.affiliateServiceError(affiliate: config.affiliate, underlyingError: error)
@@ -183,9 +184,9 @@ private extension Tapp {
         fetchSecretsAndInitializeReferralEngineIfNeeded { [weak self] result in
             switch result {
             case .success:
-                if let storedConfig = KeychainHelper.shared.config {
+                if let storedConfig = self?.dependencies.keychainHelper.config {
                     storedConfig.set(originURL: url)
-                    KeychainHelper.shared.save(config: storedConfig)
+                    self?.dependencies.keychainHelper.save(config: storedConfig)
                 }
                 self?.handleReferralCallback(url: url, authToken: authToken, completion: completion)
             case .failure(let error):
@@ -217,13 +218,13 @@ private extension Tapp {
 
     // MARK: - Referral Engine State Management
     private func setProcessedReferralEngine() {
-        guard let storedConfig = KeychainHelper.shared.config else { return }
+        guard let storedConfig = dependencies.keychainHelper.config else { return }
         storedConfig.set(hasProcessedReferralEngine: true)
-        KeychainHelper.shared.save(config: storedConfig)
+        dependencies.keychainHelper.save(config: storedConfig)
     }
 
     private func hasProcessedReferralEngine() -> Bool {
-        return KeychainHelper.shared.config?.hasProcessedReferralEngine ?? false
+        return dependencies.keychainHelper.config?.hasProcessedReferralEngine ?? false
     }
 }
 
