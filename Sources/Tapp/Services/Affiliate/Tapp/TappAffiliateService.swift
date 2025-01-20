@@ -84,20 +84,20 @@ final class TappAffiliateService: TappAffiliateServiceProtocol {
                    completion: completion)
     }
 
-    func secrets(affiliate: Affiliate, completion: SecretsCompletion?) {
+    func secrets(affiliate: Affiliate, completion: SecretsCompletion?) -> URLSessionDataTaskProtocol? {
         guard let config = keychainHelper.config, let bundleID = config.bundleID else {
             completion?(Result.failure(ServiceError.invalidData))
-            return
+            return nil
         }
         let secretsRequest = SecretsRequest(tappToken: config.tappToken, bundleID: bundleID, mmp: affiliate.rawValue)
         let endpoint = TappEndpoint.secrets(secretsRequest)
 
         guard let request = endpoint.request else {
             completion?(Result.failure(ServiceError.invalidRequest))
-            return
+            return nil
         }
 
-        networkClient.executeAuthenticated(request: request) { result in
+        return networkClient.executeAuthenticated(request: request) { result in
             switch result {
             case .success(let data):
                 let decoder = JSONDecoder()

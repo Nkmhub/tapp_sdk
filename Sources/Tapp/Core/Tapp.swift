@@ -7,6 +7,8 @@ public class Tapp: NSObject {
     static let single: Tapp = .init()
     let dependencies: Dependencies = .live
 
+    private var initializationCompletions: [InitializeTappCompletion] = []
+    private var secretsDataTask: URLSessionDataTaskProtocol?
     // MARK: - Configuration
     // AppDelegate: Called upon didFinishLaunching
 
@@ -112,37 +114,57 @@ private extension Tapp {
         }
     }
 
-    func fetchSecretsAndInitializeReferralEngineIfNeeded(completion: VoidCompletion?) {
+    private func fetchSecretsAndInitializeReferralEngineIfNeeded(completion: VoidCompletion?) {
         guard let config = KeychainHelper.shared.config else {
             completion?(Result.failure(TappError.missingConfiguration))
             return
         }
 
-        secrets(config: config) { [weak self] result in
+        if let completion {
+            initializationCompletions.append(completion)
+        }
+
+        if secretsDataTask != nil {
+            return
+        }
+
+        self.secretsDataTask = secrets(config: config) { [weak self] result in
             guard let self else { return }
             switch result {
             case .success:
-                self.initializeAffiliateService(completion: completion)
+                self.initializeAffiliateService(completion: nil)
+                self.completeInitializationsWithSuccess()
             case .failure(let error):
                 let err = TappError.affiliateServiceError(affiliate: config.affiliate, underlyingError: error)
                 Logger.logError(err)
-                completion?(Result.failure(err))
+                self.completeInitializations(with: err)
             }
+            self.secretsDataTask = nil
         }
     }
 
-    private func secrets(config: TappConfiguration, completion: VoidCompletion?) {
+    private func completeInitializationsWithSuccess() {
+        initializationCompletions.forEach({ $0(.success(()))})
+        initializationCompletions.removeAll()
+    }
+
+    private func completeInitializations(with error: Error) {
+        initializationCompletions.forEach({ $0(.failure(error)) })
+        initializationCompletions.removeAll()
+    }
+
+    private func secrets(config: TappConfiguration, completion: VoidCompletion?) -> URLSessionDataTaskProtocol? {
         guard let storedConfig = KeychainHelper.shared.config else {
             completion?(Result.failure(TappError.missingConfiguration))
-            return
+            return nil
         }
 
         guard storedConfig.appToken == nil else {
             completion?(Result.success(()))
-            return
+            return nil
         }
 
-        dependencies.services.tappService.secrets(affiliate: config.affiliate) { [unowned config] result in
+        return dependencies.services.tappService.secrets(affiliate: config.affiliate) { [unowned config] result in
             switch result {
             case .success(let response):
                 storedConfig.set(appToken: response.secret)
@@ -219,3 +241,5 @@ private extension Tapp {
         }
     }
 }
+
+private typealias InitializeTappCompletion = (_ result: Result<Void, Error>) -> Void
