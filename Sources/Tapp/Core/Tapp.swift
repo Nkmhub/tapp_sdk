@@ -5,25 +5,33 @@ import Foundation
 public class Tapp: NSObject {
 
     static let single: Tapp = .init()
-    let dependencies: Dependencies = .live
 
+    init(dependencies: Dependencies = .live, dispatchQueue: DispatchQueue = DispatchQueue(label: "com.tapp.concurrentDispatchQueue")) {
+        self.dependencies = dependencies
+        self.dispatchQueue = dispatchQueue
+    }
+
+    internal let dependencies: Dependencies
+    fileprivate var initializationCompletions: [InitializeTappCompletion] = []
+    fileprivate(set) var secretsDataTask: URLSessionDataTaskProtocol?
+    fileprivate let dispatchQueue: DispatchQueue
     // MARK: - Configuration
     // AppDelegate: Called upon didFinishLaunching
 
     @objc
     public static func start(config: TappConfiguration) {
-        if let storedConfig = KeychainHelper.shared.config, storedConfig != config {
-            KeychainHelper.shared.save(config: config)
+        if let storedConfig = single.dependencies.keychainHelper.config, storedConfig != config {
+            single.dependencies.keychainHelper.save(config: config)
         }
 
-        single.fetchSecretsAndInitializeReferralEngineIfNeeded(completion: nil)
+        single.initializeEngine(completion: nil)
         
     }
     // MARK: - Process Referral Engine
 
     //AppDelegate called when receiving a url
     public static func appWillOpen(_ url: URL, completion: VoidCompletion?) {
-        guard let config = KeychainHelper.shared.config else {
+        guard let config = single.dependencies.keychainHelper.config else {
             let error = TappError.missingConfiguration
             Logger.logError(error)
             completion?(Result.failure(error))
@@ -47,16 +55,7 @@ public class Tapp: NSObject {
 
     public static func url(config: AffiliateURLConfiguration,
                     completion: GenerateURLCompletion?) {
-        single.fetchSecretsAndInitializeReferralEngineIfNeeded { result in
-            switch result {
-            case .success:
-                let request = GenerateURLRequest(influencer: config.influencer, adGroup: config.adgroup, creative: config.creative, data: config.data)
-
-                single.dependencies.services.tappService.url(request: request, completion: completion)
-            case .failure(let error):
-                completion?(Result.failure(error))
-            }
-        }
+        single.url(config: config, completion: completion)
     }
 
     @objc
@@ -75,7 +74,7 @@ public class Tapp: NSObject {
     //For MMP Specific events
     @objc
     public static func handleEvent(config: EventConfig) {
-        guard let storedConfig = KeychainHelper.shared.config else { return }
+        guard let storedConfig = single.dependencies.keychainHelper.config else { return }
         single.affiliateService?.handleEvent(eventId: config.eventToken,
                                              authToken: storedConfig.authToken)
     }
@@ -93,8 +92,22 @@ public class Tapp: NSObject {
 }
 
 //MARK: - AppWillOpen + Processing
-private extension Tapp {
-    private func handleReferralCallback(url: URL,
+extension Tapp {
+    func url(config: AffiliateURLConfiguration,
+                    completion: GenerateURLCompletion?) {
+        initializeEngine { [weak self] result in
+            switch result {
+            case .success:
+                let request = GenerateURLRequest(influencer: config.influencer, adGroup: config.adgroup, creative: config.creative, data: config.data)
+
+                self?.dependencies.services.tappService.url(request: request, completion: completion)
+            case .failure(let error):
+                completion?(Result.failure(error))
+            }
+        }
+    }
+
+    func handleReferralCallback(url: URL,
                                         authToken: String,
                                         completion: VoidCompletion? = nil) {
 
@@ -104,6 +117,7 @@ private extension Tapp {
             case .success:
                 self.affiliateService?.handleCallback(with: url.absoluteString)
                 self.setProcessedReferralEngine()
+                completion?(Result.success(()))
             case .failure(let error):
                 let err = TappError.affiliateServiceError(affiliate: .tapp, underlyingError: error)
                 Logger.logError(err)
@@ -112,41 +126,70 @@ private extension Tapp {
         }
     }
 
-    func fetchSecretsAndInitializeReferralEngineIfNeeded(completion: VoidCompletion?) {
-        guard let config = KeychainHelper.shared.config else {
-            completion?(Result.failure(TappError.missingConfiguration))
-            return
-        }
+    func initializeEngine(completion: VoidCompletion?) {
+        dispatchQueue.async {
+            guard let config = self.dependencies.keychainHelper.config else {
+                completion?(Result.failure(TappError.missingConfiguration))
+                return
+            }
 
-        secrets(config: config) { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success:
-                self.initializeAffiliateService(completion: completion)
-            case .failure(let error):
-                let err = TappError.affiliateServiceError(affiliate: config.affiliate, underlyingError: error)
-                Logger.logError(err)
-                completion?(Result.failure(err))
+            if let completion {
+                self.initializationCompletions.append(completion)
+            }
+
+            if self.secretsDataTask != nil {
+                return
+            }
+
+            self.secretsDataTask = self.secrets(config: config) { [weak self] result in
+                guard let self else { return }
+                switch result {
+                case .success:
+                    self.initializeAffiliateService { result in
+                        switch result {
+                        case .success:
+                            self.completeInitializationsWithSuccess()
+                        case .failure(let error):
+                            self.completeInitializations(with: error)
+                        }
+                    }
+                case .failure(let error):
+                    let err = TappError.affiliateServiceError(affiliate: config.affiliate, underlyingError: error)
+                    Logger.logError(err)
+                    self.completeInitializations(with: err)
+                }
+                self.secretsDataTask = nil
             }
         }
     }
 
-    private func secrets(config: TappConfiguration, completion: VoidCompletion?) {
-        guard let storedConfig = KeychainHelper.shared.config else {
+    func completeInitializationsWithSuccess() {
+        initializationCompletions.forEach({ $0(.success(()))})
+        initializationCompletions.removeAll()
+    }
+
+    func completeInitializations(with error: Error) {
+        initializationCompletions.forEach({ $0(.failure(error)) })
+        initializationCompletions.removeAll()
+    }
+
+    func secrets(config: TappConfiguration, completion: VoidCompletion?) -> URLSessionDataTaskProtocol? {
+        guard let storedConfig = dependencies.keychainHelper.config else {
             completion?(Result.failure(TappError.missingConfiguration))
-            return
+            return nil
         }
 
         guard storedConfig.appToken == nil else {
             completion?(Result.success(()))
-            return
+            return nil
         }
 
-        dependencies.services.tappService.secrets(affiliate: config.affiliate) { [unowned config] result in
+        return dependencies.services.tappService.secrets(affiliate: config.affiliate) { [unowned config, weak self] result in
+            guard let self else { return }
             switch result {
             case .success(let response):
                 storedConfig.set(appToken: response.secret)
-                KeychainHelper.shared.save(config: storedConfig)
+                self.dependencies.keychainHelper.save(config: storedConfig)
                 completion?(.success(()))
             case .failure(let error):
                 let err = TappError.affiliateServiceError(affiliate: config.affiliate, underlyingError: error)
@@ -157,13 +200,13 @@ private extension Tapp {
     }
 
 
-    private func appWillOpen(_ url: URL, authToken: String, completion: VoidCompletion?) {
-        fetchSecretsAndInitializeReferralEngineIfNeeded { [weak self] result in
+    func appWillOpen(_ url: URL, authToken: String, completion: VoidCompletion?) {
+        initializeEngine { [weak self] result in
             switch result {
             case .success:
-                if let storedConfig = KeychainHelper.shared.config {
+                if let storedConfig = self?.dependencies.keychainHelper.config {
                     storedConfig.set(originURL: url)
-                    KeychainHelper.shared.save(config: storedConfig)
+                    self?.dependencies.keychainHelper.save(config: storedConfig)
                 }
                 self?.handleReferralCallback(url: url, authToken: authToken, completion: completion)
             case .failure(let error):
@@ -173,7 +216,7 @@ private extension Tapp {
         }
     }
 
-    private func initializeAffiliateService(completion: VoidCompletion?) {
+    func initializeAffiliateService(completion: VoidCompletion?) {
         guard let service = affiliateService else {
             let error = TappError.missingParameters(details: "Affiliate service not configured")
             Logger.logError(error)
@@ -181,7 +224,7 @@ private extension Tapp {
             return
         }
 
-        guard let storedConfig = KeychainHelper.shared.config else {
+        guard let storedConfig = dependencies.keychainHelper.config else {
             let error = TappError.missingParameters(details:
                                                         "Missing required credentials or bundle identifier")
             Logger.logError(error)
@@ -194,18 +237,18 @@ private extension Tapp {
     }
 
     // MARK: - Referral Engine State Management
-    private func setProcessedReferralEngine() {
-        guard let storedConfig = KeychainHelper.shared.config else { return }
+    func setProcessedReferralEngine() {
+        guard let storedConfig = dependencies.keychainHelper.config else { return }
         storedConfig.set(hasProcessedReferralEngine: true)
-        KeychainHelper.shared.save(config: storedConfig)
+        dependencies.keychainHelper.save(config: storedConfig)
     }
 
-    private func hasProcessedReferralEngine() -> Bool {
-        return KeychainHelper.shared.config?.hasProcessedReferralEngine ?? false
+    func hasProcessedReferralEngine() -> Bool {
+        return dependencies.keychainHelper.config?.hasProcessedReferralEngine ?? false
     }
 }
 
-private extension Tapp {
+extension Tapp {
     var affiliateService: AffiliateServiceProtocol? {
         guard let config = dependencies.keychainHelper.config else { return nil }
 
@@ -219,3 +262,5 @@ private extension Tapp {
         }
     }
 }
+
+typealias InitializeTappCompletion = (_ result: Result<Void, Error>) -> Void

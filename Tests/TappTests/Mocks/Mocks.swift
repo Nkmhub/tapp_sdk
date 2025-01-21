@@ -53,8 +53,10 @@ final class URLSessionMock: URLSessionProtocol {
 final class KeychainHelperProtocolMock: KeychainHelperProtocol {
 
     var saveCalled: Bool = false
+    var savedConfig: TappConfiguration?
     func save(config: TappConfiguration) {
         saveCalled = true
+        savedConfig = config
     }
     
     var config: TappConfiguration?
@@ -122,3 +124,54 @@ final class AdjustInterfaceProtocolMock: AdjustInterfaceProtocol {
         getIdfaCalled = true
     }
 }
+
+final class NetworkClientProtocolMock: NetworkClientProtocol {
+
+    var executeCompletion: NetworkServiceCompletion?
+    var executeDataTask: URLSessionDataTaskProtocol?
+    var executeData: Data?
+    var executeError: Error?
+    @discardableResult func execute(request: URLRequest, completion: NetworkServiceCompletion?) -> URLSessionDataTaskProtocol? {
+        if let executeError {
+            completion?(Result.failure(executeError))
+        } else if let executeData {
+            completion?(Result.success(executeData))
+        }
+        return executeDataTask
+    }
+
+    var executeAuthenticatedCompletion: NetworkServiceCompletion?
+    var executeAuthenticatedDataTask: URLSessionDataTaskProtocol?
+    var executeAuthenticatedData: Data?
+    var executeAuthenticatedError: Error?
+    @discardableResult func executeAuthenticated(request: URLRequest, completion: NetworkServiceCompletion?) -> URLSessionDataTaskProtocol? {
+
+        if let executeAuthenticatedError {
+            completion?(Result.failure(executeAuthenticatedError))
+
+        } else if let executeAuthenticatedData {
+            completion?(Result.success(executeAuthenticatedData))
+        }
+
+        return executeAuthenticatedDataTask
+    }
+}
+
+final class DependenciesMock {
+    let keychainHelper: KeychainHelperProtocolMock = .init()
+    let networkClient: NetworkClientProtocolMock = .init()
+    let tappAffiliateService: TappAffiliateServiceProtocolMock = .init()
+    let adjustAffiliateService: AdjustServiceProtocolMock = .init()
+    let appsFlyerAffiliateService: AppsFlyerAffiliateServiceProtocolMock = .init()
+    let services: Services
+    let dependencies: Dependencies
+
+    init() {
+        let services = Services(tappService: tappAffiliateService, adjustService: adjustAffiliateService, appsFlyerService: appsFlyerAffiliateService)
+        self.services = services
+        self.dependencies = Dependencies(keychainHelper: keychainHelper,
+                                         networkClient: networkClient,
+                                         services: services)
+    }
+}
+

@@ -12,7 +12,7 @@ public final class AffiliateURLConfiguration: NSObject {
         influencer: String,
         adgroup: String? = nil,
         creative: String? = nil,
-        data: [String: String]?
+        data: [String: String]? = nil
     ) {
         self.influencer = influencer
         self.adgroup = adgroup
