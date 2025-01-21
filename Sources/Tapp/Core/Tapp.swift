@@ -20,7 +20,11 @@ public class Tapp: NSObject {
 
     @objc
     public static func start(config: TappConfiguration) {
-        if let storedConfig = single.dependencies.keychainHelper.config, storedConfig != config {
+        if let storedConfig = single.dependencies.keychainHelper.config {
+            if storedConfig != config {
+                single.dependencies.keychainHelper.save(config: config)
+            }
+        } else {
             single.dependencies.keychainHelper.save(config: config)
         }
 
