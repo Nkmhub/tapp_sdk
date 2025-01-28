@@ -166,6 +166,6 @@ extension AdjustInterface: AdjustDelegate {
             print("Tapp: Deferred deep link received: \(deeplink)")
         }
 
-        return false
+        return true
     }
 }
