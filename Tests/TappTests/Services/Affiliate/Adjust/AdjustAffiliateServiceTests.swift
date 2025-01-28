@@ -39,7 +39,7 @@ final class AdjustAffiliateServiceTests: XCTestCase {
     }
 
     func testHandleCallback() {
-        subject.handleCallback(with: "")
+        subject.handleCallback(with: "", completion: nil)
         XCTAssertFalse(adjustInterface.processDeepLinkCalled)
     }
 

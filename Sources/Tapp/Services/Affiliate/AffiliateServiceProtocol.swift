@@ -17,6 +17,6 @@ public protocol AffiliateServiceProtocol {
     func initialize(environment: Environment,
                     completion: VoidCompletion?)
 
-    func handleCallback(with url: String)
+    func handleCallback(with url: String, completion: ResolvedURLCompletion?)
     func handleEvent(eventId: String, authToken: String?)
 }

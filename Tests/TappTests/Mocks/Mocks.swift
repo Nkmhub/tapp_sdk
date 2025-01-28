@@ -69,7 +69,7 @@ final class AdjustInterfaceProtocolMock: AdjustInterfaceProtocol {
     }
 
     var processDeepLinkCalled: Bool = false
-    func processDeepLink(url: URL) {
+    func processDeepLink(url: URL, completion: ResolvedURLCompletion?) {
         processDeepLinkCalled = true
     }
 

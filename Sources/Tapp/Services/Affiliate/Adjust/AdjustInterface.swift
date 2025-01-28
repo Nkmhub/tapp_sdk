@@ -3,7 +3,7 @@ import AdjustSdk
 
 protocol AdjustInterfaceProtocol {
     func initialize(appToken: String, environment: Environment)
-    func processDeepLink(url: URL)
+    func processDeepLink(url: URL, completion: ResolvedURLCompletion?)
     func trackEvent(eventID: String) -> Bool
 
     func getAttribution(completion: @escaping (AdjustAttribution?) -> Void)
@@ -28,9 +28,20 @@ final class AdjustInterface: AdjustInterfaceProtocol {
         Adjust.initSdk(adjustConfig)
     }
 
-    func processDeepLink(url: URL) {
-        Adjust.processDeeplink(ADJDeeplink(deeplink: url)!)
-        Logger.logInfo("Adjust notified of the incoming URL: \(url)")
+    func processDeepLink(url: URL, completion: ResolvedURLCompletion?) {
+        ADJLinkResolution.resolveLink(with: url, resolveUrlSuffixArray: ["email.example.com", "short.example.com"]) { resolvedURL in
+            guard let resolvedURL else {
+                completion?(Result.failure(ResolvedURLError.cannotResolveURL))
+                return
+            }
+            guard let deepLink = ADJDeeplink(deeplink: resolvedURL) else {
+                completion?(Result.failure(ResolvedURLError.cannotResolveDeepLink))
+                return
+            }
+            Adjust.processDeeplink(deepLink)
+            Logger.logInfo("Adjust notified of the incoming URL: \(url)")
+            completion?(Result.success(resolvedURL))
+        }
     }
 
     func trackEvent(eventID: String) -> Bool {

@@ -31,7 +31,7 @@ final class AppsflyerAffiliateService: AppsFlyerAffiliateServiceProtocol {
         completion?(Result.success(()))
     }
 
-    func handleCallback(with url: String) {
+    func handleCallback(with url: String, completion: ResolvedURLCompletion?) {
         guard let validURL = URL(string: url) else {
             Logger.logError(TappError.invalidURL)
             return
@@ -39,6 +39,7 @@ final class AppsflyerAffiliateService: AppsFlyerAffiliateServiceProtocol {
 
         Logger.logInfo("Handling Appsflyer callback with URL: \(validURL)")
         // Appsflyer-specific callback handling logic here
+        completion?(Result.success(validURL))
     }
 
     func handleEvent(eventId: String, authToken: String?) {

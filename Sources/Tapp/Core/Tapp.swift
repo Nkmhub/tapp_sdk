@@ -34,7 +34,7 @@ public class Tapp: NSObject {
     // MARK: - Process Referral Engine
 
     //AppDelegate called when receiving a url
-    public static func appWillOpen(_ url: URL, completion: VoidCompletion?) {
+    public static func appWillOpen(_ url: URL, completion: ResolvedURLCompletion?) {
         guard let config = single.dependencies.keychainHelper.config else {
             let error = TappError.missingConfiguration
             Logger.logError(error)
@@ -121,16 +121,22 @@ extension Tapp {
     }
 
     func handleReferralCallback(url: URL,
-                                        authToken: String,
-                                        completion: VoidCompletion? = nil) {
+                                authToken: String,
+                                completion: ResolvedURLCompletion? = nil) {
 
         dependencies.services.tappService.handleImpression(url: url) { [weak self] result in
             guard let self else { return }
             switch result {
             case .success:
-                self.affiliateService?.handleCallback(with: url.absoluteString)
-                self.setProcessedReferralEngine()
-                completion?(Result.success(()))
+                self.affiliateService?.handleCallback(with: url.absoluteString, completion: { result in
+                    switch result {
+                    case .success(let url):
+                        self.setProcessedReferralEngine()
+                        completion?(result)
+                    case .failure:
+                        completion?(result)
+                    }
+                })
             case .failure(let error):
                 let err = TappError.affiliateServiceError(affiliate: .tapp, underlyingError: error)
                 Logger.logError(err)
@@ -213,7 +219,7 @@ extension Tapp {
     }
 
 
-    func appWillOpen(_ url: URL, authToken: String, completion: VoidCompletion?) {
+    func appWillOpen(_ url: URL, authToken: String, completion: ResolvedURLCompletion?) {
         initializeEngine { [weak self] result in
             switch result {
             case .success:

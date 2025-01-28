@@ -15,7 +15,7 @@ class AffiliateServiceProtocolMock: NSObject, AffiliateServiceProtocol {
     }
 
     var handleCallbackCalled: Bool = false
-    func handleCallback(with url: String) {
+    func handleCallback(with url: String, completion: ResolvedURLCompletion?) {
         handleCallbackCalled = true
     }
 
