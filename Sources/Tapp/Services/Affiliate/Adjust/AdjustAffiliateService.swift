@@ -39,13 +39,13 @@ final class AdjustAffiliateService: AdjustServiceProtocol {
         completion?(.success(()))
     }
 
-    func handleCallback(with url: String) {
+    func handleCallback(with url: String, completion: ResolvedURLCompletion?) {
         guard let incomingURL = URL(string: url) else {
             Logger.logError(TappError.invalidURL)
             return
         }
 
-        adjustInterface.processDeepLink(url: incomingURL)
+        adjustInterface.processDeepLink(url: incomingURL, completion: completion)
     }
 
     func handleEvent(eventId: String, authToken: String?) {

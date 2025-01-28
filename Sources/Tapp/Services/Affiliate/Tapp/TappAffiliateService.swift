@@ -8,6 +8,12 @@
 import Foundation
 
 public typealias VoidCompletion = (_ result: Result<Void, Error>) -> Void
+public typealias ResolvedURLCompletion = (_ result: Result<URL, Error>) -> Void
+
+enum ResolvedURLError: Error {
+    case cannotResolveURL
+    case cannotResolveDeepLink
+}
 
 public typealias GenerateURLCompletion = (_ result: Result<GeneratedURLResponse, Error>) -> Void
 typealias SecretsCompletion = (_ result: Result<SecretsResponse, Error>) -> Void
@@ -30,8 +36,13 @@ final class TappAffiliateService: TappAffiliateServiceProtocol {
         completion?(.success(()))
     }
 
-    func handleCallback(with url: String) {
+    func handleCallback(with url: String, completion: ResolvedURLCompletion?) {
         Logger.logInfo("Handling Tapp callback with URL: \(url)")
+        guard let actualURL = URL(string: url) else {
+            completion?(Result.failure(ResolvedURLError.cannotResolveURL))
+            return
+        }
+        completion?(Result.success(actualURL))
     }
 
     func url(request: GenerateURLRequest, completion: GenerateURLCompletion?) {
