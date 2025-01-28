@@ -20,11 +20,15 @@ protocol AdjustInterfaceProtocol {
     func getIdfa(completion: @escaping (String?) -> Void)
 }
 
-final class AdjustInterface: AdjustInterfaceProtocol {
+final class AdjustInterface: NSObject, AdjustInterfaceProtocol {
     func initialize(appToken: String,
                     environment: Environment) {
         let adjustConfig = ADJConfig(appToken: appToken,
                                      environment: environment.adjustEnvironment)
+
+        adjustConfig?.logLevel = .verbose
+        adjustConfig?.delegate = self
+
         Adjust.initSdk(adjustConfig)
     }
 
@@ -153,5 +157,15 @@ private extension Environment {
         case .production:
             return ADJEnvironmentProduction
         }
+    }
+}
+
+extension AdjustInterface: AdjustDelegate {
+    func adjustDeferredDeeplinkReceived(_ deeplink: URL?) -> Bool {
+        if let deeplink {
+            print("Tapp: Deferred deep link received: \(deeplink)")
+        }
+
+        return false
     }
 }
