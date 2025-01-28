@@ -29,7 +29,7 @@ final class AdjustInterface: AdjustInterfaceProtocol {
     }
 
     func processDeepLink(url: URL, completion: ResolvedURLCompletion?) {
-        ADJLinkResolution.resolveLink(with: url, resolveUrlSuffixArray: ["email.example.com", "short.example.com"]) { resolvedURL in
+        ADJLinkResolution.resolveLink(with: url, resolveUrlSuffixArray: ["adj.st"]) { resolvedURL in
             guard let resolvedURL else {
                 completion?(Result.failure(ResolvedURLError.cannotResolveURL))
                 return
