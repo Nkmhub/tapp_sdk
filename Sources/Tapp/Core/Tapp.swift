@@ -46,13 +46,13 @@ public class Tapp: NSObject {
     }
 
     @objc
-    public static func appWillOpen(_ url: URL, completion: ((_ error: Error?) -> Void)?) {
+    public static func appWillOpen(_ url: URL, completion: ((_ url: URL?, _ error: Error?) -> Void)?) {
         appWillOpen(url) { result in
             switch result {
-            case .success:
-                completion?(nil)
+            case .success(let url):
+                completion?(url, nil)
             case .failure(let error):
-                completion?(error)
+                completion?(nil, error)
             }
         }
     }
