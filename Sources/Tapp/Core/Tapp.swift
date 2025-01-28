@@ -100,11 +100,20 @@ extension Tapp {
     func url(config: AffiliateURLConfiguration,
                     completion: GenerateURLCompletion?) {
         initializeEngine { [weak self] result in
+            guard let self else { return }
             switch result {
             case .success:
-                let request = GenerateURLRequest(influencer: config.influencer, adGroup: config.adgroup, creative: config.creative, data: config.data)
+                guard let storedConfig = self.dependencies.keychainHelper.config else {
+                    completion?(Result.failure(ServiceError.invalidData))
+                    return
+                }
+                let request = GenerateURLRequest(influencer: config.influencer,
+                                                 adGroup: config.adgroup,
+                                                 creative: config.creative,
+                                                 mmp: storedConfig.affiliate,
+                                                 data: config.data)
 
-                self?.dependencies.services.tappService.url(request: request, completion: completion)
+                self.dependencies.services.tappService.url(request: request, completion: completion)
             case .failure(let error):
                 completion?(Result.failure(error))
             }
