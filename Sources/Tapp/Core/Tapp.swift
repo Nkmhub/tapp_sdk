@@ -27,9 +27,7 @@ public class Tapp: NSObject {
         } else {
             single.dependencies.keychainHelper.save(config: config)
         }
-        single.affiliateService?.initialize(environment: config.env, completion: nil)
         single.initializeEngine(completion: nil)
-        
     }
     // MARK: - Process Referral Engine
 

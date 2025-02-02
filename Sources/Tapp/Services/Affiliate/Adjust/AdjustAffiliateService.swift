@@ -26,12 +26,10 @@ final class AdjustAffiliateService: AdjustServiceProtocol {
             return
         }
 
-        guard let config = keychainHelper.config else {
+        guard let token = keychainHelper.config?.appToken else {
             completion?(Result.failure(AffiliateServiceError.missingToken))
             return
         }
-
-        let token = config.appToken ?? config.mmpToken
 
         adjustInterface.initialize(appToken: token,
                                    environment: environment)

@@ -21,7 +21,6 @@ public final class TappConfiguration: NSObject, Codable {
         return equalNonOptionalValues && appTokensEqual
     }
 
-    let mmpToken: String
     let authToken: String
     let env: Environment
     let tappToken: String
@@ -37,14 +36,13 @@ public final class TappConfiguration: NSObject, Codable {
         env: Environment,
         tappToken: String,
         affiliate: Affiliate,
-        mmpToken: String
+        bundleID: String? = nil
     ) {
         self.authToken = authToken
         self.env = env
         self.tappToken = tappToken
         self.affiliate = affiliate
-        self.mmpToken = mmpToken
-        self.bundleID = Bundle.main.bundleIdentifier
+        self.bundleID = bundleID ?? Bundle.main.bundleIdentifier
         super.init()
     }
 
