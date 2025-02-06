@@ -14,6 +14,7 @@ enum APIPath: String {
     case deeplink
     case secrets
     case event
+    case linkData
 
     var prefixInfluencer: String {
         return rawValue.prefixInfluencer

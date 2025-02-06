@@ -79,3 +79,23 @@ extension URLRequest {
         return request
     }
 }
+
+extension URL {
+    func param(for key: String) -> String? {
+        guard let components = URLComponents(url: self, resolvingAgainstBaseURL: true) else { return nil }
+        guard let queryItems = components.queryItems?.toDictionary else { return nil }
+        return queryItems[key]?.value
+    }
+}
+
+extension Array where Element == URLQueryItem {
+    var toDictionary: [String: URLQueryItem] {
+        var dict: [String: URLQueryItem] = [:]
+
+        forEach { item in
+            dict[item.name] = item
+        }
+
+        return dict
+    }
+}

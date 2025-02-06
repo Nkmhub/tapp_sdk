@@ -51,7 +51,6 @@ final class URLSessionMock: URLSessionProtocol {
 }
 
 final class KeychainHelperProtocolMock: KeychainHelperProtocol {
-
     var saveCalled: Bool = false
     var savedConfig: TappConfiguration?
     func save(config: TappConfiguration) {
@@ -60,9 +59,19 @@ final class KeychainHelperProtocolMock: KeychainHelperProtocol {
     }
     
     var config: TappConfiguration?
+
+    var hasConfig: Bool {
+        return config != nil
+    }
 }
 
 final class AdjustInterfaceProtocolMock: AdjustInterfaceProtocol {
+    weak var deferredLinkDelegate: DeferredLinkDelegate?
+
+    func set(deferredLinkDelegate: DeferredLinkDelegate) {
+
+    }
+    
     var initializeCalled: Bool = false
     func initialize(appToken: String, environment: Environment) {
         initializeCalled = true
@@ -131,7 +140,10 @@ final class NetworkClientProtocolMock: NetworkClientProtocol {
     var executeDataTask: URLSessionDataTaskProtocol?
     var executeData: Data?
     var executeError: Error?
+    var executeRequestReceived: URLRequest?
     @discardableResult func execute(request: URLRequest, completion: NetworkServiceCompletion?) -> URLSessionDataTaskProtocol? {
+        executeRequestReceived = request
+        
         if let executeError {
             completion?(Result.failure(executeError))
         } else if let executeData {
@@ -144,7 +156,10 @@ final class NetworkClientProtocolMock: NetworkClientProtocol {
     var executeAuthenticatedDataTask: URLSessionDataTaskProtocol?
     var executeAuthenticatedData: Data?
     var executeAuthenticatedError: Error?
+    var executeAuthenticatedRequestReceived: URLRequest?
     @discardableResult func executeAuthenticated(request: URLRequest, completion: NetworkServiceCompletion?) -> URLSessionDataTaskProtocol? {
+
+        executeAuthenticatedRequestReceived = request
 
         if let executeAuthenticatedError {
             completion?(Result.failure(executeAuthenticatedError))

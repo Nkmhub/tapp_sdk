@@ -4,9 +4,6 @@
 
 import Foundation
 
-typealias NetworkServiceCompletion = (_ result: Result<Data, Error>) -> Void
-typealias DataTaskCompletion = (Data?, URLResponse?, Error?) -> Void
-
 protocol URLSessionDataTaskProtocol {
     var identifier: Int { get }
     func resume()

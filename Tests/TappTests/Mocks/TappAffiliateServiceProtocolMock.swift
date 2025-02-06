@@ -1,7 +1,7 @@
 import Foundation
 @testable import Tapp
 
-final class TappAffiliateServiceProtocolMock: AffiliateServiceProtocolMock, TappAffiliateServiceProtocol {
+final class TappAffiliateServiceProtocolMock: AffiliateServiceProtocolMock {
     var urlResponse: GeneratedURLResponse? {
         didSet {
             if let urlResponse {
@@ -17,12 +17,12 @@ final class TappAffiliateServiceProtocolMock: AffiliateServiceProtocolMock, Tapp
         }
     }
     var completion: GenerateURLCompletion?
-    func url(request: GenerateURLRequest, completion: GenerateURLCompletion?) {
+    override func url(request: GenerateURLRequest, completion: GenerateURLCompletion?) {
         self.completion = completion
     }
 
     var handleImpressionError: Error?
-    func handleImpression(url: URL, completion: VoidCompletion?) {
+    override func handleImpression(url: URL, completion: VoidCompletion?) {
         if let handleImpressionError {
             completion?(Result.failure(handleImpressionError))
         } else {
@@ -31,7 +31,7 @@ final class TappAffiliateServiceProtocolMock: AffiliateServiceProtocolMock, Tapp
     }
 
     var sendTappEventError: Error?
-    func sendTappEvent(event: TappEvent, completion: VoidCompletion?) {
+    override func sendTappEvent(event: TappEvent, completion: VoidCompletion?) {
         if let sendTappEventError {
             completion?(Result.failure(sendTappEventError))
         } else {
@@ -52,7 +52,7 @@ final class TappAffiliateServiceProtocolMock: AffiliateServiceProtocolMock, Tapp
     var secretsError: Error?
     var secretsCalledCount: Int = 0
     var secretsCompletion: SecretsCompletion?
-    func secrets(affiliate: Affiliate, completion: SecretsCompletion?) -> URLSessionDataTaskProtocol? {
+    override func secrets(affiliate: Affiliate, completion: SecretsCompletion?) -> URLSessionDataTaskProtocol? {
         secretsCalledCount += 1
         secretsCompletion = completion
 

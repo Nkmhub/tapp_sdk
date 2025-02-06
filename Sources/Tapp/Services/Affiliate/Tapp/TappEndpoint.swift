@@ -9,10 +9,11 @@ enum TappEndpoint: Endpoint {
     case deeplink(ImpressionRequest)
     case secrets(SecretsRequest)
     case tappEvent(TappEventRequest)
+    case linkData(TappLinkDataRequest)
 
     var httpMethod: HTTPMethod {
         switch self {
-        case .generateURL, .deeplink, .secrets, .tappEvent:
+        case .generateURL, .deeplink, .secrets, .tappEvent, .linkData:
             return .post
         }
     }
@@ -27,6 +28,8 @@ enum TappEndpoint: Endpoint {
             return APIPath.secrets.rawValue
         case .tappEvent:
             return APIPath.event.rawValue
+        case .linkData:
+            return APIPath.linkData.rawValue
         }
     }
 
@@ -39,6 +42,8 @@ enum TappEndpoint: Endpoint {
         case .secrets(let requestData):
             return request(encodable: requestData)
         case .tappEvent(let requestData):
+            return request(encodable: requestData)
+        case .linkData(let requestData):
             return request(encodable: requestData)
         }
     }

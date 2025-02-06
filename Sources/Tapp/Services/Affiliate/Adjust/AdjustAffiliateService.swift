@@ -19,6 +19,10 @@ final class AdjustAffiliateService: AdjustServiceProtocol {
         self.adjustInterface = adjustInterface
     }
 
+    func set(deferredLinkDelegate: DeferredLinkDelegate) {
+        adjustInterface.set(deferredLinkDelegate: deferredLinkDelegate)
+    }
+
     func initialize(environment: Environment, completion: VoidCompletion?) {
         guard !isInitialized else {
             Logger.logInfo("Adjust is already initialized.")

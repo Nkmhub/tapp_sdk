@@ -98,3 +98,7 @@ extension Tapp {
         dependencies.services.adjustService.getIdfa(completion: completion)
     }
 }
+
+enum AdjustURLParamKey: String {
+    case token = "adj_t"
+}

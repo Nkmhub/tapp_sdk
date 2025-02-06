@@ -1,5 +1,5 @@
 //
-//  TappSpecificService.swift
+//  TappService.swift
 //  Tapp
 //
 //  Created by Nikolaos Tseperkas on 16/11/24.
@@ -12,4 +12,5 @@ protocol TappServiceProtocol {
     func handleImpression(url: URL, completion: VoidCompletion?)
     func sendTappEvent(event: TappEvent, completion: VoidCompletion?)
     func secrets(affiliate: Affiliate, completion: SecretsCompletion?) -> URLSessionDataTaskProtocol?
+    func didReceiveDeferredURL(_ url: URL, completion: LinkDataCompletion?)
 }

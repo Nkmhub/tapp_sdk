@@ -32,7 +32,7 @@ final class TappTests: XCTestCase {
     }
 
     func testMultipleInitializeEngineCalls() async throws {
-        dependenciesMock.keychainHelper.config = testConfiguration
+        dependenciesMock.keychainHelper.config = Self.testConfiguration
         dependenciesMock.tappAffiliateService.secretsTask = URLSessionDataTaskProtocolMock(identifier: 1)
 
         let expectation1 = self.expectation(description: "initialization1")
@@ -56,7 +56,7 @@ final class TappTests: XCTestCase {
     }
 
     func testAppWillOpen() async throws {
-        dependenciesMock.keychainHelper.config = testConfiguration
+        dependenciesMock.keychainHelper.config = Self.testConfiguration
         dependenciesMock.tappAffiliateService.secretsTask = URLSessionDataTaskProtocolMock(identifier: 1)
         XCTAssertEqual(dependenciesMock.keychainHelper.config?.hasProcessedReferralEngine, false)
 
@@ -78,7 +78,7 @@ final class TappTests: XCTestCase {
     }
 
     func testInitializeAndAppWillOpenSimultaneously() async throws {
-        dependenciesMock.keychainHelper.config = testConfiguration
+        dependenciesMock.keychainHelper.config = Self.testConfiguration
         dependenciesMock.tappAffiliateService.secretsTask = URLSessionDataTaskProtocolMock(identifier: 1)
 
         let expectation1 = self.expectation(description: "initialization1")
@@ -106,7 +106,7 @@ final class TappTests: XCTestCase {
     }
 
     func testFetchURL() async throws {
-        dependenciesMock.keychainHelper.config = testConfiguration
+        dependenciesMock.keychainHelper.config = Self.testConfiguration
         dependenciesMock.tappAffiliateService.secretsTask = URLSessionDataTaskProtocolMock(identifier: 1)
         let expectation = self.expectation(description: "urlFetch")
         let configuration = AffiliateURLConfiguration(influencer: "someID")
@@ -128,13 +128,42 @@ final class TappTests: XCTestCase {
 
         await fulfillment(of: [expectation], timeout: 0.5)
     }
+
+    func testDidReceiveDeferredLink() throws {
+        let url = try XCTUnwrap(URL(string: AdjustMockURL.goLink.rawValue))
+        sut.didReceiveDeferredLink(url)
+
+        XCTAssertTrue(dependenciesMock.tappAffiliateService.handleCallbackCalled)
+        XCTAssertFalse(dependenciesMock.tappAffiliateService.didReceiveDeferredURLCalled)
+
+        let delegate = TappDelegateMock()
+        dependenciesMock.tappAffiliateService.handleCallbackCalled = false
+        sut.delegate = delegate
+        
+        sut.didReceiveDeferredLink(url)
+
+        XCTAssertTrue(dependenciesMock.tappAffiliateService.handleCallbackCalled)
+        XCTAssertTrue(dependenciesMock.tappAffiliateService.didReceiveDeferredURLCalled)
+    }
 }
 
-private extension TappTests {
-    var testConfiguration: TappConfiguration {
+extension TappTests {
+    static var testConfiguration: TappConfiguration {
         return TappConfiguration(authToken: "authToken",
                                  env: .sandbox,
                                  tappToken: "tappToken",
                                  affiliate: .adjust)
+    }
+}
+
+fileprivate final class TappDelegateMock: TappDelegate {
+    var didOpenApplicationCalled = false
+    func didOpenApplication(with data: TappDeferredLinkData) {
+        didOpenApplicationCalled = true
+    }
+
+    var didFailResolvingURLCalled = false
+    func didFailResolvingURL(url: URL, error: Error) {
+        didFailResolvingURLCalled = true
     }
 }
