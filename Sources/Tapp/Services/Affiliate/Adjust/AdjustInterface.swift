@@ -1,7 +1,11 @@
 import Foundation
 import AdjustSdk
 
-protocol AdjustInterfaceProtocol {
+protocol DeferredLinkDelegate: AnyObject {
+    func didReceiveDeferredLink(_ url: URL)
+}
+
+protocol AdjustInterfaceProtocol: AnyObject {
     func initialize(appToken: String, environment: Environment)
     func processDeepLink(url: URL, completion: ResolvedURLCompletion?)
     func trackEvent(eventID: String) -> Bool
@@ -18,9 +22,15 @@ protocol AdjustInterfaceProtocol {
     func setPushToken(_ token: String)
     func getAdid(completion: @escaping (String?) -> Void)
     func getIdfa(completion: @escaping (String?) -> Void)
+
+    var deferredLinkDelegate: DeferredLinkDelegate? { get }
+    func set(deferredLinkDelegate: DeferredLinkDelegate)
 }
 
 final class AdjustInterface: NSObject, AdjustInterfaceProtocol {
+
+    weak var deferredLinkDelegate: DeferredLinkDelegate?
+
     func initialize(appToken: String,
                     environment: Environment) {
         let adjustConfig = ADJConfig(appToken: appToken,
@@ -30,6 +40,10 @@ final class AdjustInterface: NSObject, AdjustInterfaceProtocol {
         adjustConfig?.delegate = self
 
         Adjust.initSdk(adjustConfig)
+    }
+
+    func set(deferredLinkDelegate: DeferredLinkDelegate) {
+        self.deferredLinkDelegate = deferredLinkDelegate
     }
 
     func processDeepLink(url: URL, completion: ResolvedURLCompletion?) {
@@ -163,7 +177,7 @@ private extension Environment {
 extension AdjustInterface: AdjustDelegate {
     func adjustDeferredDeeplinkReceived(_ deeplink: URL?) -> Bool {
         if let deeplink {
-            print("Tapp: Deferred deep link received: \(deeplink)")
+            deferredLinkDelegate?.didReceiveDeferredLink(deeplink)
         }
 
         return true

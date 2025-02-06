@@ -4,7 +4,6 @@ import Foundation
 protocol AdjustAffiliateServiceProtocol: AffiliateServiceProtocol, AdjustServiceProtocol {}
 
 final class AdjustServiceProtocolMock: AffiliateServiceProtocolMock, AdjustAffiliateServiceProtocol {
-
     var getAttributionCalled: Bool = false
     func getAttribution(completion: @escaping (AdjustAttribution?) -> Void) {
         getAttributionCalled = true
@@ -43,5 +42,9 @@ final class AdjustServiceProtocolMock: AffiliateServiceProtocolMock, AdjustAffil
     var getIdfaCalled: Bool = false
     func getIdfa(completion: @escaping (String?) -> Void) {
         getIdfaCalled = true
+    }
+
+    func set(deferredLinkDelegate: DeferredLinkDelegate) {
+
     }
 }

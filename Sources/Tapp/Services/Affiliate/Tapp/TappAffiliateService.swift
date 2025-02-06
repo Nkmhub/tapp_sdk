@@ -7,16 +7,10 @@
 
 import Foundation
 
-public typealias VoidCompletion = (_ result: Result<Void, Error>) -> Void
-public typealias ResolvedURLCompletion = (_ result: Result<URL, Error>) -> Void
-
 enum ResolvedURLError: Error {
     case cannotResolveURL
     case cannotResolveDeepLink
 }
-
-public typealias GenerateURLCompletion = (_ result: Result<GeneratedURLResponse, Error>) -> Void
-typealias SecretsCompletion = (_ result: Result<SecretsResponse, Error>) -> Void
 
 protocol TappAffiliateServiceProtocol: AffiliateServiceProtocol, TappServiceProtocol {}
 
@@ -91,8 +85,7 @@ final class TappAffiliateService: TappAffiliateServiceProtocol {
     func handleImpression(url: URL, completion: VoidCompletion?) {
         guard let config = keychainHelper.config, let bundleID = config.bundleID else { return }
         let impressionRequest = ImpressionRequest(tappToken: config.tappToken, bundleID: bundleID, deepLink: url)
-        commonVoid(with: TappEndpoint.deeplink(impressionRequest),
-                   completion: completion)
+        commonVoid(with: TappEndpoint.deeplink(impressionRequest), completion: completion)
     }
 
     func secrets(affiliate: Affiliate, completion: SecretsCompletion?) -> URLSessionDataTaskProtocol? {
@@ -140,6 +133,12 @@ final class TappAffiliateService: TappAffiliateServiceProtocol {
     func handleEvent(eventId: String, authToken: String?) {
         Logger.logInfo("Use the handleTappEvent method to handle Tapp events")
     }
+
+    func didReceiveDeferredURL(_ url: URL, completion: LinkDataCompletion?) {
+        guard let linkToken = url.param(for: AdjustURLParamKey.token.rawValue) else { return }
+
+        fetchLinkData(linkToken: linkToken, completion: completion)
+    }
 }
 
 private extension TappAffiliateService {
@@ -153,6 +152,38 @@ private extension TappAffiliateService {
             switch result {
             case .success:
                 completion?(Result.success(()))
+            case .failure(let error):
+                completion?(Result.failure(error))
+            }
+        }
+    }
+
+    func fetchLinkData(linkToken: String, completion: LinkDataCompletion?) {
+        guard let config = keychainHelper.config, let bundleID = config.bundleID else {
+            completion?(Result.failure(ServiceError.invalidData))
+            return
+        }
+
+        let linkRequest = TappLinkDataRequest(tappToken: config.tappToken,
+                                              bundleID: bundleID,
+                                              linkToken: linkToken)
+        let endpoint = TappEndpoint.linkData(linkRequest)
+
+        guard let request = endpoint.request else {
+            completion?(Result.failure(ServiceError.invalidRequest))
+            return
+        }
+
+        networkClient.executeAuthenticated(request: request) { result in
+            switch result {
+            case .success(let data):
+                let decoder = JSONDecoder()
+                do {
+                    let response = try decoder.decode(TappDeferredLinkDataDTO.self, from: data)
+                    completion?(Result.success(response))
+                } catch {
+                    completion?(Result.failure(error))
+                }
             case .failure(let error):
                 completion?(Result.failure(error))
             }

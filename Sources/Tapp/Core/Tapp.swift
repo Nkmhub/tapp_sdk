@@ -9,17 +9,24 @@ public class Tapp: NSObject {
     init(dependencies: Dependencies = .live, dispatchQueue: DispatchQueue = DispatchQueue(label: "com.tapp.concurrentDispatchQueue")) {
         self.dependencies = dependencies
         self.dispatchQueue = dispatchQueue
+        self.isFirstSession = !dependencies.keychainHelper.hasConfig
+        super.init()
+        self.setupDependencies()
     }
 
     internal let dependencies: Dependencies
     fileprivate var initializationCompletions: [InitializeTappCompletion] = []
-    fileprivate(set) var secretsDataTask: URLSessionDataTaskProtocol?
+    fileprivate var secretsDataTask: URLSessionDataTaskProtocol?
     fileprivate let dispatchQueue: DispatchQueue
+    fileprivate var isFirstSession: Bool
+    internal weak var delegate: TappDelegate?
     // MARK: - Configuration
     // AppDelegate: Called upon didFinishLaunching
 
     @objc
-    public static func start(config: TappConfiguration) {
+    public static func start(config: TappConfiguration, delegate: TappDelegate?) {
+        single.delegate = delegate
+
         if let storedConfig = single.dependencies.keychainHelper.config {
             if storedConfig != config {
                 single.dependencies.keychainHelper.save(config: config)
@@ -278,6 +285,29 @@ extension Tapp {
             return dependencies.services.appsFlyerService
         }
     }
+
+    func setupDependencies() {
+        dependencies.services.adjustService.set(deferredLinkDelegate: self)
+    }
 }
 
-typealias InitializeTappCompletion = (_ result: Result<Void, Error>) -> Void
+extension Tapp: DeferredLinkDelegate {
+    func didReceiveDeferredLink(_ url: URL) {
+        dependencies.services.tappService.handleCallback(with: url.absoluteString, completion: nil)
+        
+        guard delegate != nil else { return }
+
+        dependencies.services.tappService.didReceiveDeferredURL(url) { [weak self] result in
+            guard let self else { return }
+
+            switch result {
+            case .success(let dto):
+                self.delegate?.didOpenApplication?(with: TappDeferredLinkData(dto: dto,
+                                                                       isFirstSession: self.isFirstSession))
+            case .failure(let error):
+                self.delegate?.didFailResolvingURL?(url: url, error: error)
+            }
+            self.isFirstSession = false
+        }
+    }
+}

@@ -19,4 +19,6 @@ protocol AdjustServiceProtocol: AffiliateServiceProtocol {
     func setPushToken(_ token: String)
     func getAdid(completion: @escaping (String?) -> Void)
     func getIdfa(completion: @escaping (String?) -> Void)
+
+    func set(deferredLinkDelegate: DeferredLinkDelegate)
 }

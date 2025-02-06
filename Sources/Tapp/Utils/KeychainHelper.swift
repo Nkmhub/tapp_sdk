@@ -11,6 +11,7 @@ import Security
 protocol KeychainHelperProtocol {
     func save(config: TappConfiguration)
     var config: TappConfiguration? { get }
+    var hasConfig: Bool { get }
 }
 
 final class KeychainHelper: KeychainHelperProtocol {
@@ -34,6 +35,10 @@ final class KeychainHelper: KeychainHelperProtocol {
         return get(key: keychainKey, type: TappConfiguration.self)
     }
 
+    var hasConfig: Bool {
+        return config != nil
+    }
+
     private func save(key: String, codable: any Codable) {
         let encoder: JSONEncoder = JSONEncoder()
         guard let data = try? encoder.encode(codable) else { return }
@@ -46,10 +51,12 @@ final class KeychainHelper: KeychainHelperProtocol {
     }
 
     private func get<T: Decodable>(key: String, type: T.Type, decodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) -> T? {
-        let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
-                                    kSecAttrAccount as String: key,
-                                    kSecReturnData as String: true,
-                                    kSecMatchLimit as String: kSecMatchLimitOne]
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
 
         var result: AnyObject?
         SecItemCopyMatching(query as CFDictionary, &result)
