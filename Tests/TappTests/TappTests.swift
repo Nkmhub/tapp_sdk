@@ -55,56 +55,6 @@ final class TappTests: XCTestCase {
         XCTAssertEqual(dependenciesMock.tappAffiliateService.secretsCalledCount, 1)
     }
 
-    func testAppWillOpen() async throws {
-        dependenciesMock.keychainHelper.config = Self.testConfiguration
-        dependenciesMock.tappAffiliateService.secretsTask = URLSessionDataTaskProtocolMock(identifier: 1)
-        XCTAssertEqual(dependenciesMock.keychainHelper.config?.hasProcessedReferralEngine, false)
-
-        let url = try XCTUnwrap(URL(string: "https://tapp.so"))
-
-        let expectation = self.expectation(description: "appWillOpen")
-        sut.appWillOpen(url, authToken: "authToken") { result in
-            expectation.fulfill()
-        }
-
-        try await Task.sleep(milliseconds: 50)
-
-        dependenciesMock.tappAffiliateService.secretsResponse = SecretsResponse(secret: "123")
-
-        await fulfillment(of: [expectation], timeout: 0.5)
-        XCTAssertEqual(dependenciesMock.keychainHelper.config?.originURL, url)
-        XCTAssertEqual(dependenciesMock.keychainHelper.config?.hasProcessedReferralEngine, true)
-        XCTAssertTrue(dependenciesMock.adjustAffiliateService.handleCallbackCalled)
-    }
-
-    func testInitializeAndAppWillOpenSimultaneously() async throws {
-        dependenciesMock.keychainHelper.config = Self.testConfiguration
-        dependenciesMock.tappAffiliateService.secretsTask = URLSessionDataTaskProtocolMock(identifier: 1)
-
-        let expectation1 = self.expectation(description: "initialization1")
-        sut.initializeEngine { result in
-            expectation1.fulfill()
-        }
-
-        let url = try XCTUnwrap(URL(string: "https://tapp.so"))
-
-        let expectation2 = self.expectation(description: "appWillOpen")
-        sut.appWillOpen(url, authToken: "authToken") { result in
-            expectation2.fulfill()
-        }
-
-        try await Task.sleep(milliseconds: 50)
-
-        dependenciesMock.tappAffiliateService.secretsResponse = SecretsResponse(secret: "123")
-
-        await fulfillment(of: [expectation1, expectation2], timeout: 0.5)
-
-        XCTAssertEqual(dependenciesMock.tappAffiliateService.secretsCalledCount, 1)
-        XCTAssertEqual(dependenciesMock.keychainHelper.config?.originURL, url)
-        XCTAssertEqual(dependenciesMock.keychainHelper.config?.hasProcessedReferralEngine, true)
-        XCTAssertTrue(dependenciesMock.adjustAffiliateService.handleCallbackCalled)
-    }
-
     func testFetchURL() async throws {
         dependenciesMock.keychainHelper.config = Self.testConfiguration
         dependenciesMock.tappAffiliateService.secretsTask = URLSessionDataTaskProtocolMock(identifier: 1)
@@ -127,23 +77,6 @@ final class TappTests: XCTestCase {
         dependenciesMock.tappAffiliateService.urlResponse = GeneratedURLResponse(url: url)
 
         await fulfillment(of: [expectation], timeout: 0.5)
-    }
-
-    func testDidReceiveDeferredLink() throws {
-        let url = try XCTUnwrap(URL(string: AdjustMockURL.goLink.rawValue))
-        sut.didReceiveDeferredLink(url)
-
-        XCTAssertTrue(dependenciesMock.tappAffiliateService.handleCallbackCalled)
-        XCTAssertFalse(dependenciesMock.tappAffiliateService.didReceiveDeferredURLCalled)
-
-        let delegate = TappDelegateMock()
-        dependenciesMock.tappAffiliateService.handleCallbackCalled = false
-        sut.delegate = delegate
-        
-        sut.didReceiveDeferredLink(url)
-
-        XCTAssertTrue(dependenciesMock.tappAffiliateService.handleCallbackCalled)
-        XCTAssertTrue(dependenciesMock.tappAffiliateService.didReceiveDeferredURLCalled)
     }
 }
 
