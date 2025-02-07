@@ -134,7 +134,11 @@ final class TappAffiliateService: TappAffiliateServiceProtocol {
         Logger.logInfo("Use the handleTappEvent method to handle Tapp events")
     }
 
-    func didReceiveDeferredURL(_ url: URL, completion: LinkDataCompletion?) {
+    func shouldProcess(url: URL) -> Bool {
+        return url.param(for: AdjustURLParamKey.token.rawValue) != nil
+    }
+
+    func fetchLinkData(for url: URL, completion: LinkDataDTOCompletion?) {
         guard let linkToken = url.param(for: AdjustURLParamKey.token.rawValue) else { return }
 
         fetchLinkData(linkToken: linkToken, completion: completion)
@@ -158,7 +162,7 @@ private extension TappAffiliateService {
         }
     }
 
-    func fetchLinkData(linkToken: String, completion: LinkDataCompletion?) {
+    func fetchLinkData(linkToken: String, completion: LinkDataDTOCompletion?) {
         guard let config = keychainHelper.config, let bundleID = config.bundleID else {
             completion?(Result.failure(ServiceError.invalidData))
             return

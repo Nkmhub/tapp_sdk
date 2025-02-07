@@ -8,9 +8,9 @@ import AdjustSdk
 
 final class AdjustAffiliateService: AdjustServiceProtocol {
 
-    private(set) var isInitialized = false
-    private let keychainHelper: KeychainHelperProtocol
-    private let adjustInterface: AdjustInterfaceProtocol
+    fileprivate(set) var isInitialized = false
+    let keychainHelper: KeychainHelperProtocol
+    let adjustInterface: AdjustInterfaceProtocol
 
     // Initialize with appToken
     init(keychainHelper: KeychainHelperProtocol,

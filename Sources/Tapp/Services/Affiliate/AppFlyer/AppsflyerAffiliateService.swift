@@ -14,7 +14,7 @@ protocol AppsFlyerAffiliateServiceProtocol: AffiliateServiceProtocol {}
 
 final class AppsflyerAffiliateService: AppsFlyerAffiliateServiceProtocol {
 
-    private(set) var isInitialized = false
+    fileprivate(set) var isInitialized = false
     let networkClient: NetworkClientProtocol
     init(networkClient: NetworkClientProtocol) {
         self.networkClient = networkClient

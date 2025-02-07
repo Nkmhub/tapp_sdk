@@ -24,10 +24,17 @@ class AffiliateServiceProtocolMock: NSObject, TappAffiliateServiceProtocol {
     }
 
     var didReceiveDeferredURLCalled: Bool = false
-    func didReceiveDeferredURL(_ url: URL, completion: LinkDataCompletion?) {
+    func fetchLinkData(for url: URL, completion: LinkDataDTOCompletion?) {
         didReceiveDeferredURLCalled = true
     }
-    
+
+    var shouldProcessURLValue: Bool = false
+    var shouldProcessCalled: Bool = false
+    func shouldProcess(url: URL) -> Bool {
+        shouldProcessCalled = true
+        return shouldProcessURLValue
+    }
+
     var isInitialized: Bool = false
     var initializeCompletion: VoidCompletion?
     var initializeError: Error?
