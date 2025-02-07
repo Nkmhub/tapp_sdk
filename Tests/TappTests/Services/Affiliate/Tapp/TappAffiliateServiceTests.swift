@@ -19,7 +19,7 @@ final class TappAffiliateServiceTests: XCTestCase {
 
         dependenciesHelper.keychainHelper.config = TappTests.testConfiguration
 
-        sut.didReceiveDeferredURL(url, completion: nil)
+        sut.fetchLinkData(for: url, completion: nil)
 
         let receivedRequest = try XCTUnwrap(dependenciesHelper.networkClient.executeAuthenticatedRequestReceived)
         let body = try XCTUnwrap(receivedRequest.httpBody)

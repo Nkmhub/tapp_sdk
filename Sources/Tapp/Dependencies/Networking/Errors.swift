@@ -10,8 +10,10 @@ enum ServiceError: Error {
     case invalidData
     case invalidID
     case unauthorized
+    case unprocessableEntity
 
     case noNetwork
+    case notFound
 }
 
 struct ServerError: Error, Codable, Equatable {

@@ -98,10 +98,70 @@ public class Tapp: NSObject {
 
         single.dependencies.services.tappService.sendTappEvent(event: event, completion: nil)
     }
+
+    //MARK: - Deep Links (App Already installed)
+    @objc
+    public static func shouldProcess(url: URL) -> Bool {
+        return single.dependencies.services.tappService.shouldProcess(url: url)
+    }
+
+    public static func fetchLinkData(for url: URL, completion: LinkDataCompletion?) {
+        guard shouldProcess(url: url) else {
+            completion?(Result.failure(ServiceError.unprocessableEntity))
+            return
+        }
+
+        single.initializeEngine { result in
+            switch result {
+            case .success:
+                single.dependencies.services.tappService.fetchLinkData(for: url) { result in
+                    switch result {
+                    case .success(let dto):
+                        completion?(Result.success(TappDeferredLinkData(dto: dto, isFirstSession: single.isFirstSession)))
+                    case .failure(let error):
+                        completion?(Result.failure(error))
+                    }
+                }
+            case .failure(let error):
+                completion?(Result.failure(error))
+            }
+        }
+    }
+
+    @objc
+    public static func fetchLinkData(for url: URL, completion: ((_ response: TappDeferredLinkData?, _ error: Error?) -> Void)?) {
+        fetchLinkData(for: url) { result in
+            switch result {
+            case .success(let data):
+                completion?(data, nil)
+            case .failure(let error):
+                completion?(nil, error)
+            }
+        }
+    }
+
+    public static func fetchOriginLinkData(completion: LinkDataCompletion?) {
+        guard let originURL = single.dependencies.keychainHelper.config?.originURL else {
+            completion?(Result.failure(ServiceError.notFound))
+            return
+        }
+        fetchLinkData(for: originURL, completion: completion)
+    }
+
+    @objc
+    public static func fetchOriginLinkData(completion: ((_ response: TappDeferredLinkData?, _ error: Error?) -> Void)?) {
+        fetchOriginLinkData { result in
+            switch result {
+            case .success(let data):
+                completion?(data, nil)
+            case .failure(let error):
+                completion?(nil, error)
+            }
+        }
+    }
 }
 
-//MARK: - AppWillOpen + Processing
-extension Tapp {
+internal extension Tapp {
     func url(config: AffiliateURLConfiguration,
                     completion: GenerateURLCompletion?) {
         initializeEngine { [weak self] result in
@@ -248,6 +308,11 @@ extension Tapp {
             return
         }
 
+        if service.isInitialized {
+            completion?(Result.success(()))
+            return
+        }
+
         guard let storedConfig = dependencies.keychainHelper.config else {
             let error = TappError.missingParameters(details:
                                                         "Missing required credentials or bundle identifier")
@@ -255,7 +320,6 @@ extension Tapp {
             completion?(Result.failure(error))
             return
         }
-
 
         service.initialize(environment: storedConfig.env, completion: completion)
     }
@@ -269,6 +333,32 @@ extension Tapp {
 
     func hasProcessedReferralEngine() -> Bool {
         return dependencies.keychainHelper.config?.hasProcessedReferralEngine ?? false
+    }
+
+    //MARK: - Deep Links (App Already installed)
+    func shouldProcess(url: URL) -> Bool {
+        return dependencies.services.tappService.shouldProcess(url: url)
+    }
+
+    func fetchLinkData(for url: URL, completion: LinkDataDTOCompletion?) {
+        guard shouldProcess(url: url) else {
+            completion?(Result.failure(ServiceError.unprocessableEntity))
+            return
+        }
+
+        initializeEngine { [weak self] result in
+            switch result {
+            case .success:
+                if let storedConfig = self?.dependencies.keychainHelper.config {
+                    storedConfig.set(originURL: url)
+                    self?.dependencies.keychainHelper.save(config: storedConfig)
+                }
+                self?.dependencies.services.tappService.fetchLinkData(for: url, completion: completion)
+            case .failure(let error):
+                Logger.logError(error)
+                completion?(Result.failure(error))
+            }
+        }
     }
 }
 
@@ -293,21 +383,33 @@ extension Tapp {
 
 extension Tapp: DeferredLinkDelegate {
     func didReceiveDeferredLink(_ url: URL) {
-        dependencies.services.tappService.handleCallback(with: url.absoluteString, completion: nil)
-        
-        guard delegate != nil else { return }
-
-        dependencies.services.tappService.didReceiveDeferredURL(url) { [weak self] result in
-            guard let self else { return }
-
+        initializeEngine { [weak self] result in
             switch result {
-            case .success(let dto):
-                self.delegate?.didOpenApplication?(with: TappDeferredLinkData(dto: dto,
-                                                                       isFirstSession: self.isFirstSession))
+            case .success:
+                self?.dependencies.services.tappService.handleImpression(url: url, completion: nil)
+
+                guard self?.delegate != nil else { return }
+
+                self?.dependencies.services.tappService.fetchLinkData(for: url) { [weak self] result in
+                    guard let self else { return }
+
+                    switch result {
+                    case .success(let dto):
+                        if let storedConfig = self.dependencies.keychainHelper.config {
+                            storedConfig.set(originURL: url)
+                            self.dependencies.keychainHelper.save(config: storedConfig)
+                        }
+
+                        self.delegate?.didOpenApplication?(with: TappDeferredLinkData(dto: dto,
+                                                                               isFirstSession: self.isFirstSession))
+                    case .failure(let error):
+                        self.delegate?.didFailResolvingURL?(url: url, error: error)
+                    }
+                    self.isFirstSession = false
+                }
             case .failure(let error):
-                self.delegate?.didFailResolvingURL?(url: url, error: error)
+                Logger.logError(error)
             }
-            self.isFirstSession = false
         }
     }
 }
