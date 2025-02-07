@@ -4,14 +4,13 @@
 
 import Foundation
 
-enum ServiceError: Error {
+public enum ServiceError: Error {
     case invalidRequest
     case invalidURL
     case invalidData
     case invalidID
     case unauthorized
     case unprocessableEntity
-
     case noNetwork
     case notFound
 }
