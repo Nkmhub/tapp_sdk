@@ -47,18 +47,19 @@ public final class TappConfiguration: NSObject, Codable {
     }
 
     @objc
-    convenience public init(
+    public init(
         authToken: String,
         env: Environment,
         tappToken: String,
         affiliateName: String,
         bundleID: String? = nil
     ) {
-        self.init(authToken: authToken,
-                  env: env,
-                  tappToken: tappToken,
-                  affiliate: affiliateName.toAffiliate,
-                  bundleID: bundleID)
+        self.authToken = authToken
+        self.env = env
+        self.tappToken = tappToken
+        self.affiliate = affiliateName.toAffiliate
+        self.bundleID = bundleID ?? Bundle.main.bundleIdentifier
+        super.init()
     }
 
     func set(appToken: String) {
