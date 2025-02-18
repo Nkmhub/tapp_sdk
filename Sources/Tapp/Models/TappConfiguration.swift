@@ -46,6 +46,21 @@ public final class TappConfiguration: NSObject, Codable {
         super.init()
     }
 
+    @objc
+    convenience public init(
+        authToken: String,
+        env: Environment,
+        tappToken: String,
+        affiliateName: String,
+        bundleID: String? = nil
+    ) {
+        self.init(authToken: authToken,
+                  env: env,
+                  tappToken: tappToken,
+                  affiliate: affiliateName.toAffiliate,
+                  bundleID: bundleID)
+    }
+
     func set(appToken: String) {
         self.appToken = appToken
     }
@@ -56,5 +71,17 @@ public final class TappConfiguration: NSObject, Codable {
 
     func set(hasProcessedReferralEngine: Bool) {
         self.hasProcessedReferralEngine = hasProcessedReferralEngine
+    }
+}
+
+private extension String {
+    var toAffiliate: Affiliate {
+        if self.lowercased() == "adjust" {
+            return .adjust
+        } else if self.lowercased() == "appsflyer" {
+            return .appsflyer
+        } else {
+            return .tapp
+        }
     }
 }
