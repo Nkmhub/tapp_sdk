@@ -49,13 +49,13 @@ public final class TappConfiguration: NSObject, Codable {
     @objc
     public init(
         authToken: String,
-        env: Environment,
+        env: String,
         tappToken: String,
         affiliateName: String,
         bundleID: String? = nil
     ) {
         self.authToken = authToken
-        self.env = env
+        self.env = env.toEnvironment
         self.tappToken = tappToken
         self.affiliate = affiliateName.toAffiliate
         self.bundleID = bundleID ?? Bundle.main.bundleIdentifier
@@ -83,6 +83,16 @@ private extension String {
             return .appsflyer
         } else {
             return .tapp
+        }
+    }
+
+    var toEnvironment: Environment {
+        if self.lowercased() == "production" {
+            return .production
+        } else if self.lowercased() == "sandbox" {
+            return .sandbox
+        } else {
+            return .sandbox
         }
     }
 }
