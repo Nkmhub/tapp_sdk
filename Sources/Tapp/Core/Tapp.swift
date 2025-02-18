@@ -43,10 +43,8 @@ public class Tapp: NSObject {
         }
         single.initializeEngine(completion: nil)
 
-        if let simulatedTestEventDelay, let simulatedTestEventValue {
-            single.simulatedTestEventTimer = Timer.scheduledTimer(withTimeInterval: simulatedTestEventDelay.doubleValue, repeats: false, block: { _ in
-                single.delegate?.simulateTestEvent?(value: simulatedTestEventValue)
-            })
+        if let simulatedTestEventValue {
+            single.delegate?.simulateTestEvent?(value: simulatedTestEventValue)
         }
     }
 
