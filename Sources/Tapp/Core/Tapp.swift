@@ -21,18 +21,12 @@ public class Tapp: NSObject {
     fileprivate var isFirstSession: Bool
     internal weak var delegate: TappDelegate?
 
-    private var simulatedTestEventDelay: NSNumber?
-    private var simulatedTestEventValue: String?
-    private var simulatedTestEventTimer: Timer?
-
     // MARK: - Configuration
     // AppDelegate: Called upon didFinishLaunching
 
     @objc
-    public static func start(config: TappConfiguration, delegate: TappDelegate?, simulatedTestEventDelay: NSNumber? = nil, simulatedTestEventValue: String? = nil) {
+    public static func start(config: TappConfiguration, delegate: TappDelegate?) {
         single.delegate = delegate
-        single.simulatedTestEventDelay = simulatedTestEventDelay
-        single.simulatedTestEventValue = simulatedTestEventValue
 
         if let storedConfig = single.dependencies.keychainHelper.config {
             if storedConfig != config {
@@ -42,10 +36,6 @@ public class Tapp: NSObject {
             single.dependencies.keychainHelper.save(config: config)
         }
         single.initializeEngine(completion: nil)
-
-        if let simulatedTestEventValue {
-            single.delegate?.simulateTestEvent?(value: simulatedTestEventValue)
-        }
     }
 
     // MARK: - Generate url
