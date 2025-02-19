@@ -4,7 +4,6 @@ import Foundation
 public protocol TappDelegate: AnyObject {
     @objc optional func didOpenApplication(with data: TappDeferredLinkData)
     @objc optional func didFailResolvingURL(url: URL, error: Error)
-    @objc optional func simulateTestEvent(value: String)
 }
 
 @objc

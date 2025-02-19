@@ -21,11 +21,11 @@ public final class TappConfiguration: NSObject, Codable {
         return equalNonOptionalValues && appTokensEqual
     }
 
-    let authToken: String
-    let env: Environment
-    let tappToken: String
-    let affiliate: Affiliate
-    let bundleID: String?
+    internal let authToken: String
+    internal let env: Environment
+    internal let tappToken: String
+    internal let affiliate: Affiliate
+    internal let bundleID: String?
     private(set) var originURL: URL?
     private(set) var appToken: String?
     private(set) var hasProcessedReferralEngine: Bool = false
