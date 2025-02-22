@@ -56,7 +56,8 @@ extension Environment {
     var baseURL: String {
         switch self {
         case .sandbox:
-            return "https://api.nkmhub.com/sandbox/ref"
+            return "https://api.nkmhub.com/v1/ref"
+//            return "https://api.nkmhub.com/sandbox/ref" //TODO: Disabling this until further notice - Re-enable it once sandbox works on the backend.
         case .production:
             return "https://api.nkmhub.com/v1/ref"
         }
