@@ -1,11 +1,11 @@
 Pod::Spec.new do |spec|
   spec.name          = 'TappSDK'
-  spec.version       = '1.0.64'
+  spec.version       = '1.0.65'
   spec.license       = { :type => 'BSD' }
   spec.homepage      = 'https://github.com/Nkmhub/tapp_sdk'
   spec.authors       = { 'Alex Stergiou' => 'alex.stergiou@hotmail.com' }
   spec.summary       = 'TappSDK.'
-  spec.source        = { :git => 'https://github.com/Nkmhub/tapp_sdk.git', :tag => '1.0.64' }
+  spec.source        = { :git => 'https://github.com/Nkmhub/tapp_sdk.git', :tag => '1.0.65' }
   spec.module_name   = 'TappSDK'
   spec.swift_version = '5.8'
   spec.license       = { :type => 'MIT', :file => 'LICENSE.md' }
