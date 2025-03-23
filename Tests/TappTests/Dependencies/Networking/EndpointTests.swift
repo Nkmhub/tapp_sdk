@@ -9,8 +9,8 @@ final class EndpointTests: XCTestCase {
     }
 
     func testBaseURL() {
-        XCTAssertEqual(BaseURL.value(for: .sandbox), "https://api.nkmhub.com/sandbox/ref")
-        XCTAssertEqual(BaseURL.value(for: .production), "https://api.nkmhub.com/v1/ref")
+        XCTAssertEqual(BaseURL.value(for: .sandbox), "https://api.nkmhub.com/v1/ref")
+        XCTAssertEqual(BaseURL.value(for: .production), "https://api.tapp.so/v1/ref")
     }
 
     func testEndpointRequestProvider() throws {
