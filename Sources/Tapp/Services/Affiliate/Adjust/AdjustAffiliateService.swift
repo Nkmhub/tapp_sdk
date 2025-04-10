@@ -163,18 +163,10 @@ extension AdjustAffiliateService {
         adjustInterface.removeGlobalPartnerParameters()
     }
 
-    func trackThirdPartySharing(_ thirdPartySharing: AdjustThirdPartySharing) {
-        adjustInterface.trackThirdPartySharing(thirdPartySharing)
-    }
-
     func trackMeasurementConsent(_ consent: Bool) {
         adjustInterface.trackMeasurementConsent(consent)
     }
-
-    func trackAdRevenue(_ revenue: AdjustAdRevenue) {
-        adjustInterface.trackAdRevenue(revenue)
-    }
-
+    
     func trackAppStoreSubscription(_ subscription: AdjustAppStoreSubscription) {
         adjustInterface.trackAppStoreSubscription(subscription)
     }

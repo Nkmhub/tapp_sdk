@@ -35,9 +35,7 @@ protocol AdjustServiceProtocol: AffiliateServiceProtocol {
     func addGlobalPartnerParameter(_ parameter: String, key: String)
     func removeGlobalPartnerParameter(for key: String)
     func removeGlobalPartnerParameters()
-    func trackThirdPartySharing(_ thirdPartySharing: AdjustThirdPartySharing)
     func trackMeasurementConsent(_ consent: Bool)
-    func trackAdRevenue(_ revenue: AdjustAdRevenue)
     func trackAppStoreSubscription(_ subscription: AdjustAppStoreSubscription)
     func requestAppTrackingAuthorization(completionHandler: @escaping (UInt?) -> Void)
     func appTrackingAuthorizationStatus() -> Int32

@@ -38,10 +38,8 @@ protocol AdjustInterfaceProtocol: AnyObject {
     func addGlobalPartnerParameter(_ parameter: String, key: String) 
     func removeGlobalPartnerParameter(for key: String) 
     func removeGlobalPartnerParameters() 
-    func trackThirdPartySharing(_ thirdPartySharing: AdjustThirdPartySharing) 
     func trackMeasurementConsent(_ consent: Bool) 
-    func trackAdRevenue(_ revenue: AdjustAdRevenue) 
-    func trackAppStoreSubscription(_ subscription: AdjustAppStoreSubscription) 
+    func trackAppStoreSubscription(_ subscription: AdjustAppStoreSubscription)
     func requestAppTrackingAuthorization(completionHandler: @escaping (UInt?) -> Void) 
     func appTrackingAuthorizationStatus() -> Int32 
     func updateSkanConversionValue(_ value: Int, coarseValue: String?, lockWindow: NSNumber?, completion: @escaping (Error?) -> Void) 
@@ -233,20 +231,9 @@ final class AdjustInterface: NSObject, AdjustInterfaceProtocol {
     func removeGlobalPartnerParameters() {
         Adjust.removeGlobalPartnerParameters()
     }
-    func trackThirdPartySharing(_ thirdPartySharing: AdjustThirdPartySharing) {
-        if let object = thirdPartySharing.adjObject {
-            Adjust.trackThirdPartySharing(object)
-        }
-    }
 
-    func trackMeasurementConsent(_ consent: Bool) {
+    func trackMeasurementConsent(_ consent: Bool)  {
         Adjust.trackMeasurementConsent(consent)
-    }
-
-    func trackAdRevenue(_ revenue: AdjustAdRevenue) {
-        if let object = revenue.adjObject {
-            Adjust.trackAdRevenue(object)
-        }
     }
 
     func trackAppStoreSubscription(_ subscription: AdjustAppStoreSubscription) {

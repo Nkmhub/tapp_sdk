@@ -192,28 +192,12 @@ extension Tapp {
         adjustService.removeGlobalPartnerParameters()
     }
 
-    @objc public static func adjustTrackThirdPartySharing(_ thirdPartySharing: AdjustThirdPartySharing) {
-        single.adjustTrackThirdPartySharing(thirdPartySharing)
-    }
-
-    func adjustTrackThirdPartySharing(_ thirdPartySharing: AdjustThirdPartySharing) {
-        adjustService.trackThirdPartySharing(thirdPartySharing)
-    }
-
     @objc public static func adjustTrackMeasurementConsent(_ consent: Bool) {
         single.adjustTrackMeasurementConsent(consent)
     }
 
     func adjustTrackMeasurementConsent(_ consent: Bool) {
         adjustService.trackMeasurementConsent(consent)
-    }
-
-    @objc public static func adjustTrackAdRevenue(_ revenue: AdjustAdRevenue) {
-        single.adjustTrackAdRevenue(revenue)
-    }
-
-    func adjustTrackAdRevenue(_ revenue: AdjustAdRevenue) {
-        adjustService.trackAdRevenue(revenue)
     }
 
     @objc public static func adjustTrackAppStoreSubscription(_ subscription: AdjustAppStoreSubscription) {

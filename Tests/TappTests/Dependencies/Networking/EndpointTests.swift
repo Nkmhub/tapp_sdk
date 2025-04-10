@@ -30,7 +30,7 @@ final class EndpointTests: XCTestCase {
     func testEndpointRequest() throws {
         let endpoint = TestEndpoint.test
         let request = try XCTUnwrap(endpoint.request)
-        XCTAssertEqual(request.url?.absoluteString, "https://api.nkmhub.com/sandbox/ref/testPath")
+        XCTAssertEqual(request.url?.absoluteString, "https://api.nkmhub.com/v1/ref/testPath")
     }
 
     func testRequestWithEncodable() throws {
@@ -46,7 +46,7 @@ final class EndpointTests: XCTestCase {
         let url = try XCTUnwrap(TestEndpoint.test.url(id: id))
         let idString = id.uuidString
         let absoluteString = url.absoluteString
-        let expectedURLString = "https://api.nkmhub.com/sandbox/ref/testPath?id=\(idString)"
+        let expectedURLString = "https://api.nkmhub.com/v1/ref/testPath?id=\(idString)"
         XCTAssertEqual(absoluteString, expectedURLString)
     }
 }
