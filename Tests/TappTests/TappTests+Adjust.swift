@@ -26,7 +26,7 @@ extension TappTests {
 
     func testAdjustVerifyAppStorePurchase() {
         sut.adjustVerifyAppStorePurchase(transactionId: .empty, productId: .empty) { _ in }
-        XCTAssertTrue(dependenciesMock.adjustAffiliateService.verifyAppStorePurchaseCalled)
+        XCTAssertTrue(dependenciesMock.adjustAffiliateService.verifyAppStorePurchaseWithTransactionIdCalled)
     }
 
     func testAdjustSetPushToken() {

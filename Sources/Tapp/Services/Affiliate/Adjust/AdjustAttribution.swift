@@ -1,17 +1,19 @@
 import Foundation
 
+@objc
 public final class AdjustAttribution: NSObject {
-    public var trackerToken: String?
-    public var trackerName: String?
-    public var network: String?
-    public var campaign: String?
-    public var adGroup: String?
-    public var creative: String?
-    public var clickLabel: String?
-    public var costType: String?
-    public var costAmount: NSNumber?
-    public var costCurrency: String?
+    @objc public var trackerToken: String?
+    @objc public var trackerName: String?
+    @objc public var network: String?
+    @objc public var campaign: String?
+    @objc public var adGroup: String?
+    @objc public var creative: String?
+    @objc public var clickLabel: String?
+    @objc public var costType: String?
+    @objc public var costAmount: NSNumber?
+    @objc public var costCurrency: String?
 
+    @objc
     public var dictionary: [AnyHashable: Any]? {
         return toADJAttribution.dictionary()
     }

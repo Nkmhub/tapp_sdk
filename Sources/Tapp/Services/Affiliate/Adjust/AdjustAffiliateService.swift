@@ -7,7 +7,6 @@ import Foundation
 import AdjustSdk
 
 final class AdjustAffiliateService: AdjustServiceProtocol {
-
     fileprivate(set) var isInitialized = false
     let keychainHelper: KeychainHelperProtocol
     let adjustInterface: AdjustInterfaceProtocol
@@ -95,14 +94,6 @@ extension AdjustAffiliateService {
                                        currency: currency)
     }
 
-    func verifyAppStorePurchase(transactionId: String,
-                                productId: String,
-                                completion: @escaping (AdjustPurchaseVerificationResult) -> Void) {
-        adjustInterface.verifyAppStorePurchase(transactionId: transactionId,
-                                               productId: productId,
-                                               completion: completion)
-    }
-
     // MARK: - Push Token
     func setPushToken(_ token: String) {
         adjustInterface.setPushToken(token)
@@ -115,5 +106,92 @@ extension AdjustAffiliateService {
 
     func getIdfa(completion: @escaping (String?) -> Void) {
         adjustInterface.getIdfa(completion: completion)
+    }
+
+    func getIdfv(completion: @escaping (String?) -> Void) {
+        adjustInterface.getIdfv(completion: completion)
+    }
+
+    func enable() {
+        adjustInterface.enable()
+    }
+    func disable() {
+        adjustInterface.disable()
+    }
+
+    func isEnabled(completion: @escaping (Bool?) -> Void) {
+        adjustInterface.isEnabled(completion: completion)
+    }
+
+    func switchToOfflineMode() {
+        adjustInterface.switchToOfflineMode()
+    }
+
+    func switchBackToOnlineMode() {
+        adjustInterface.switchBackToOnlineMode()
+    }
+
+    func sdkVersion(completion: @escaping (String?) -> Void) {
+        adjustInterface.sdkVersion(completion: completion)
+    }
+
+    func convert(universalLink: URL, with scheme: String) -> URL? {
+        adjustInterface.convert(universalLink: universalLink, with: scheme)
+    }
+
+    func addGlobalCallbackParameter(_ parameter: String, key: String) {
+        adjustInterface.addGlobalCallbackParameter(parameter, key: key)
+    }
+
+    func removeGlobalCallbackParameter(for key: String) {
+        adjustInterface.removeGlobalCallbackParameter(for: key)
+    }
+
+    func removeGlobalCallbackParameters() {
+        adjustInterface.removeGlobalCallbackParameters()
+    }
+
+    func addGlobalPartnerParameter(_ parameter: String, key: String) {
+        adjustInterface.addGlobalPartnerParameter(parameter, key: key)
+    }
+
+    func removeGlobalPartnerParameter(for key: String) {
+        adjustInterface.removeGlobalPartnerParameter(for: key)
+    }
+
+    func removeGlobalPartnerParameters() {
+        adjustInterface.removeGlobalPartnerParameters()
+    }
+
+    func trackMeasurementConsent(_ consent: Bool) {
+        adjustInterface.trackMeasurementConsent(consent)
+    }
+    
+    func trackAppStoreSubscription(_ subscription: AdjustAppStoreSubscription) {
+        adjustInterface.trackAppStoreSubscription(subscription)
+    }
+
+    func requestAppTrackingAuthorization(completionHandler: @escaping (UInt?) -> Void) {
+        adjustInterface.requestAppTrackingAuthorization(completionHandler: completionHandler)
+    }
+
+    func appTrackingAuthorizationStatus() -> Int32 {
+        adjustInterface.appTrackingAuthorizationStatus()
+    }
+
+    func updateSkanConversionValue(_ value: Int, coarseValue: String?, lockWindow: NSNumber?, completion: @escaping (Error?) -> Void) {
+        adjustInterface.updateSkanConversionValue(value, coarseValue: coarseValue, lockWindow: lockWindow, completion: completion)
+    }
+
+    func verifyAppStorePurchase(transactionId: String,
+                                productId: String,
+                                completion: @escaping (AdjustPurchaseVerificationResult?) -> Void) {
+        adjustInterface.verifyAppStorePurchase(transactionId: transactionId,
+                                               productId: productId,
+                                               completion: completion)
+    }
+
+    func verifyAndTrackAppStorePurchase(with event: AdjustEvent, completion: @escaping (AdjustPurchaseVerificationResult?) -> Void) {
+        adjustInterface.verifyAndTrackAppStorePurchase(with: event, completion: completion)
     }
 }
