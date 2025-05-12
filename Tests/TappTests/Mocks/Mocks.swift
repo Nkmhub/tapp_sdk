@@ -53,9 +53,9 @@ final class URLSessionMock: URLSessionProtocol {
 final class KeychainHelperProtocolMock: KeychainHelperProtocol {
     var saveCalled: Bool = false
     var savedConfig: TappConfiguration?
-    func save(config: TappConfiguration) {
+    func save(configuration: TappConfiguration) {
         saveCalled = true
-        savedConfig = config
+        savedConfig = configuration
     }
     
     var config: TappConfiguration?

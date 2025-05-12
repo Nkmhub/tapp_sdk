@@ -30,10 +30,10 @@ public class Tapp: NSObject {
 
         if let storedConfig = single.dependencies.keychainHelper.config {
             if storedConfig != config {
-                single.dependencies.keychainHelper.save(config: config)
+                single.dependencies.keychainHelper.save(configuration: config)
             }
         } else {
-            single.dependencies.keychainHelper.save(config: config)
+            single.dependencies.keychainHelper.save(configuration: config)
         }
         single.initializeEngine(completion: nil)
     }
@@ -225,7 +225,7 @@ internal extension Tapp {
             switch result {
             case .success(let response):
                 storedConfig.set(appToken: response.secret)
-                self.dependencies.keychainHelper.save(config: storedConfig)
+                self.dependencies.keychainHelper.save(configuration: storedConfig)
                 completion?(.success(()))
             case .failure(let error):
                 let err = TappError.affiliateServiceError(affiliate: config.affiliate, underlyingError: error)
@@ -271,7 +271,7 @@ internal extension Tapp {
     func setProcessedReferralEngine() {
         guard let storedConfig = dependencies.keychainHelper.config else { return }
         storedConfig.set(hasProcessedReferralEngine: true)
-        dependencies.keychainHelper.save(config: storedConfig)
+        dependencies.keychainHelper.save(configuration: storedConfig)
     }
 
     func hasProcessedReferralEngine() -> Bool {
@@ -294,7 +294,7 @@ internal extension Tapp {
             case .success:
                 if let storedConfig = self?.dependencies.keychainHelper.config {
                     storedConfig.set(originURL: url)
-                    self?.dependencies.keychainHelper.save(config: storedConfig)
+                    self?.dependencies.keychainHelper.save(configuration: storedConfig)
                 }
                 self?.dependencies.services.tappService.fetchLinkData(for: url, completion: completion)
             case .failure(let error):
@@ -340,7 +340,7 @@ extension Tapp: DeferredLinkDelegate {
                     case .success(let dto):
                         if let storedConfig = self.dependencies.keychainHelper.config {
                             storedConfig.set(originURL: url)
-                            self.dependencies.keychainHelper.save(config: storedConfig)
+                            self.dependencies.keychainHelper.save(configuration: storedConfig)
                         }
 
                         self.delegate?.didOpenApplication?(with: TappDeferredLinkData(dto: dto,

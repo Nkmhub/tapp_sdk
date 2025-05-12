@@ -9,7 +9,7 @@ import Foundation
 import Security
 
 protocol KeychainHelperProtocol {
-    func save(config: TappConfiguration)
+    func save(configuration: TappConfiguration)
     var config: TappConfiguration? { get }
     var hasConfig: Bool { get }
 }
@@ -20,19 +20,26 @@ final class KeychainHelper: KeychainHelperProtocol {
     }
 
     static let shared = KeychainHelper()
-    
-    private init() {}
+
+    let keychainTool: KeychainToolProtocol
+    init(keychainTool: KeychainToolProtocol = KeychainTool()) {
+        self.keychainTool = keychainTool
+    }
 
     private var keychainKey: String {
         return "tapp_c"
     }
 
-    func save(config: TappConfiguration) {
-        save(key: keychainKey, codable: config)
+    func save(configuration: TappConfiguration) {
+        if let config, let url = config.originURL {
+            configuration.set(originURL: url)
+        }
+
+        save(key: keychainKey, codable: configuration)
     }
 
     var config: TappConfiguration? {
-        return get(key: keychainKey, type: TappConfiguration.self)
+        return get(key: keychainKey, type: TappConfiguration.self) as? TappConfiguration
     }
 
     var hasConfig: Bool {
@@ -40,6 +47,26 @@ final class KeychainHelper: KeychainHelperProtocol {
     }
 
     private func save(key: String, codable: any Codable) {
+        keychainTool.save(key: key, codable: codable)
+    }
+
+    private func get<T: Decodable>(key: String, type: T.Type, decodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) -> (any Decodable)? {
+        return keychainTool.get(key: key, type: type, decodingStrategy: decodingStrategy)
+    }
+
+    func delete(key: String) {
+        return keychainTool.delete(key: key)
+    }
+}
+
+protocol KeychainToolProtocol {
+    func save(key: String, codable: any Codable)
+    func get<T: Decodable>(key: String, type: T.Type, decodingStrategy: JSONDecoder.DateDecodingStrategy) -> Decodable?
+    func delete(key: String)
+}
+
+final class KeychainTool: KeychainToolProtocol {
+    func save(key: String, codable: any Codable) {
         let encoder: JSONEncoder = JSONEncoder()
         guard let data = try? encoder.encode(codable) else { return }
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
@@ -50,7 +77,7 @@ final class KeychainHelper: KeychainHelperProtocol {
         SecItemAdd(query as CFDictionary, nil)
     }
 
-    private func get<T: Decodable>(key: String, type: T.Type, decodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) -> T? {
+    func get<T: Decodable>(key: String, type: T.Type, decodingStrategy: JSONDecoder.DateDecodingStrategy) -> Decodable? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
@@ -72,5 +99,5 @@ final class KeychainHelper: KeychainHelperProtocol {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
                                     kSecAttrAccount as String: key]
         SecItemDelete(query as CFDictionary)
-    }    
+    }
 }
